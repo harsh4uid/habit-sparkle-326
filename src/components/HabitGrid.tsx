@@ -74,29 +74,34 @@ export function HabitGrid({ onEditHabit }: HabitGridProps) {
                 const date = formatDate(selectedYear, selectedMonth, day);
                 const completed = !!completions[date]?.[habit.id];
                 const isFuture = isCurrentMonth && day > todayDate;
+                const scheduled = isScheduledForDay(habit, selectedYear, selectedMonth, day);
 
                 return (
                   <div key={day} className="flex-1 min-w-[28px] flex items-center justify-center py-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <motion.button
-                          whileTap={{ scale: 0.85 }}
-                          disabled={isFuture}
-                          onClick={() => toggleCompletion(date, habit.id)}
-                          className={cn(
-                            'h-6 w-6 rounded-md border transition-all duration-200',
-                            completed
-                              ? 'bg-accent border-accent shadow-sm shadow-accent/25'
-                              : isFuture
-                                ? 'border-border/50 bg-transparent cursor-not-allowed opacity-30'
-                                : 'border-border hover:border-primary/40 hover:bg-primary/5 cursor-pointer'
-                          )}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        {habit.name} — Day {day}
-                      </TooltipContent>
-                    </Tooltip>
+                    {scheduled ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <motion.button
+                            whileTap={{ scale: 0.85 }}
+                            disabled={isFuture}
+                            onClick={() => toggleCompletion(date, habit.id)}
+                            className={cn(
+                              'h-6 w-6 rounded-md border transition-all duration-200',
+                              completed
+                                ? 'bg-accent border-accent shadow-sm shadow-accent/25'
+                                : isFuture
+                                  ? 'border-border/50 bg-transparent cursor-not-allowed opacity-30'
+                                  : 'border-border hover:border-primary/40 hover:bg-primary/5 cursor-pointer'
+                            )}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-xs">
+                          {habit.name} — Day {day}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <div className="h-6 w-6 rounded-md bg-muted/20 opacity-20" />
+                    )}
                   </div>
                 );
               })}
