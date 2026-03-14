@@ -4,11 +4,14 @@ import { persist } from 'zustand/middleware';
 export type HabitCategory = 'health' | 'productivity' | 'learning' | 'fitness' | 'mindfulness';
 export type HabitFrequency = 'daily' | 'weekly';
 
+export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // Sun=0 ... Sat=6
+
 export interface Habit {
   id: string;
   name: string;
   category: HabitCategory;
   frequency: HabitFrequency;
+  scheduledDays?: Weekday[]; // undefined/empty = every day
   createdAt: string;
 }
 
