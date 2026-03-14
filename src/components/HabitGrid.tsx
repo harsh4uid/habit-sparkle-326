@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useHabitStore, Habit } from '@/stores/useHabitStore';
-import { getDaysInMonth, formatDate, categoryColors } from '@/lib/habitUtils';
+import { getDaysInMonth, formatDate, categoryColors, isScheduledForDay } from '@/lib/habitUtils';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {

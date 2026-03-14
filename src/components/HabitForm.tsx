@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useHabitStore, Habit, HabitCategory, HabitFrequency } from '@/stores/useHabitStore';
+import { useHabitStore, Habit, HabitCategory, HabitFrequency, Weekday } from '@/stores/useHabitStore';
 import { categoryLabels } from '@/lib/habitUtils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+
+const DAY_LABELS: { value: Weekday; short: string }[] = [
+  { value: 0, short: 'Sun' },
+  { value: 1, short: 'Mon' },
+  { value: 2, short: 'Tue' },
+  { value: 3, short: 'Wed' },
+  { value: 4, short: 'Thu' },
+  { value: 5, short: 'Fri' },
+  { value: 6, short: 'Sat' },
+];
 
 interface HabitFormProps {
   open: boolean;
@@ -18,27 +29,43 @@ export function HabitForm({ open, onClose, editingHabit }: HabitFormProps) {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<HabitCategory>('health');
   const [frequency, setFrequency] = useState<HabitFrequency>('daily');
+  const [scheduledDays, setScheduledDays] = useState<Weekday[]>([]);
 
   useEffect(() => {
     if (editingHabit) {
       setName(editingHabit.name);
       setCategory(editingHabit.category);
       setFrequency(editingHabit.frequency);
+      setScheduledDays(editingHabit.scheduledDays || []);
     } else {
       setName('');
       setCategory('health');
       setFrequency('daily');
+      setScheduledDays([]);
     }
   }, [editingHabit, open]);
+
+  const toggleDay = (day: Weekday) => {
+    setScheduledDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
+    const habitData = {
+      name: name.trim(),
+      category,
+      frequency,
+      scheduledDays: frequency === 'daily' ? scheduledDays : undefined,
+    };
+
     if (editingHabit) {
-      updateHabit(editingHabit.id, { name: name.trim(), category, frequency });
+      updateHabit(editingHabit.id, habitData);
     } else {
-      addHabit({ name: name.trim(), category, frequency });
+      addHabit(habitData);
     }
     onClose();
   };
@@ -84,6 +111,29 @@ export function HabitForm({ open, onClose, editingHabit }: HabitFormProps) {
               </Select>
             </div>
           </div>
+
+          {frequency === 'daily' && (
+            <div className="space-y-2">
+              <Label>Scheduled Days <span className="text-muted-foreground text-xs">(leave empty for every day)</span></Label>
+              <div className="flex gap-1.5">
+                {DAY_LABELS.map(({ value, short }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => toggleDay(value)}
+                    className={cn(
+                      'flex-1 py-1.5 rounded-md text-xs font-medium transition-colors border',
+                      scheduledDays.includes(value)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
+                    )}
+                  >
+                    {short}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

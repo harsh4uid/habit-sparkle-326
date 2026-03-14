@@ -12,6 +12,14 @@ export function getWeekNumber(day: number): number {
   return Math.min(Math.ceil(day / 7), 4);
 }
 
+/** Check if a habit is scheduled for a given date */
+export function isScheduledForDay(habit: Habit, year: number, month: number, day: number): boolean {
+  if (habit.frequency !== 'daily') return true;
+  if (!habit.scheduledDays || habit.scheduledDays.length === 0) return true;
+  const dayOfWeek = new Date(year, month, day).getDay();
+  return habit.scheduledDays.includes(dayOfWeek as any);
+}
+
 export const categoryColors: Record<HabitCategory, { bg: string; text: string; dot: string }> = {
   health: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-500' },
   productivity: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300', dot: 'bg-blue-500' },
@@ -56,6 +64,7 @@ export function calculateCompletionRate(
     for (let day = 1; day <= maxDay; day++) {
       const date = formatDate(year, month, day);
       for (const habit of filteredHabits) {
+        if (!isScheduledForDay(habit, year, month, day)) continue;
         total++;
         if (completions[date]?.[habit.id]) completed++;
       }
@@ -102,6 +111,7 @@ export function getWeeklyCompletionRates(
     for (let day = start; day <= end; day++) {
       const date = formatDate(year, month, day);
       for (const habit of dailyHabits) {
+        if (!isScheduledForDay(habit, year, month, day)) continue;
         total++;
         if (completions[date]?.[habit.id]) completed++;
       }
@@ -126,11 +136,16 @@ export function getDailyCompletionData(
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = formatDate(year, month, day);
+    const scheduled = dailyHabits.filter((h) => isScheduledForDay(h, year, month, day));
+    if (scheduled.length === 0) {
+      data.push({ day, rate: 0 });
+      continue;
+    }
     let completed = 0;
-    for (const habit of dailyHabits) {
+    for (const habit of scheduled) {
       if (completions[date]?.[habit.id]) completed++;
     }
-    data.push({ day, rate: Math.round((completed / dailyHabits.length) * 100) });
+    data.push({ day, rate: Math.round((completed / scheduled.length) * 100) });
   }
 
   return data;
