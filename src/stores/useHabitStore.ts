@@ -37,7 +37,7 @@ export const useHabitStore = create<HabitState>()(
   persist(
     (set, get) => ({
       habits: [
-        { id: '1', name: 'Morning Exercise', category: 'fitness', frequency: 'daily', createdAt: new Date().toISOString() },
+        { id: '1', name: 'Morning Exercise', category: 'fitness', frequency: 'daily', scheduledDays: [1, 3, 5], createdAt: new Date().toISOString() },
         { id: '2', name: 'Read 30 Minutes', category: 'learning', frequency: 'daily', createdAt: new Date().toISOString() },
         { id: '3', name: 'Meditate', category: 'mindfulness', frequency: 'daily', createdAt: new Date().toISOString() },
         { id: '4', name: 'Drink 8 Glasses Water', category: 'health', frequency: 'daily', createdAt: new Date().toISOString() },
