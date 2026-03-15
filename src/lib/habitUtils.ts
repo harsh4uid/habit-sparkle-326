@@ -1,4 +1,4 @@
-import { Habit, HabitCategory } from '@/stores/useHabitStore';
+import type { Task } from '@/stores/useHabitStore';
 
 export function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month + 1, 0).getDate();
@@ -8,48 +8,49 @@ export function formatDate(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-export function getWeekNumber(day: number): number {
-  return Math.min(Math.ceil(day / 7), 4);
+export function getTodayString(): string {
+  const t = new Date();
+  return formatDate(t.getFullYear(), t.getMonth(), t.getDate());
 }
 
-/** Check if a habit is scheduled for a given date */
-export function isScheduledForDay(habit: Habit, year: number, month: number, day: number): boolean {
-  if (habit.frequency !== 'daily') return true;
-  if (!habit.scheduledDays || habit.scheduledDays.length === 0) return true;
+export function isToday(year: number, month: number, day: number): boolean {
+  const t = new Date();
+  return t.getFullYear() === year && t.getMonth() === month && t.getDate() === day;
+}
+
+export function isPast(year: number, month: number, day: number): boolean {
+  const d = new Date(year, month, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d < today;
+}
+
+export function isScheduledForDay(task: Task, year: number, month: number, day: number): boolean {
+  if (task.frequency !== 'daily') return true;
+  if (!task.scheduled_days || task.scheduled_days.length === 0) return true;
   const dayOfWeek = new Date(year, month, day).getDay();
-  return habit.scheduledDays.includes(dayOfWeek as any);
+  return task.scheduled_days.includes(dayOfWeek);
 }
-
-export const categoryColors: Record<HabitCategory, { bg: string; text: string; dot: string }> = {
-  health: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-500' },
-  productivity: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300', dot: 'bg-blue-500' },
-  learning: { bg: 'bg-violet-100 dark:bg-violet-900/30', text: 'text-violet-700 dark:text-violet-300', dot: 'bg-violet-500' },
-  fitness: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300', dot: 'bg-orange-500' },
-  mindfulness: { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-300', dot: 'bg-rose-500' },
-};
-
-export const categoryLabels: Record<HabitCategory, string> = {
-  health: 'Health',
-  productivity: 'Productivity',
-  learning: 'Learning',
-  fitness: 'Fitness',
-  mindfulness: 'Mindfulness',
-};
 
 export const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+export const CATEGORY_COLORS = [
+  '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444',
+  '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
+];
+
 export function calculateCompletionRate(
-  habits: Habit[],
-  completions: Record<string, Record<string, boolean>>,
+  tasks: Task[],
+  completionMap: Record<string, Record<string, string>>,
   month: number,
   year: number,
   frequency: 'daily' | 'weekly' = 'daily'
 ): number {
-  const filteredHabits = habits.filter((h) => h.frequency === frequency);
-  if (filteredHabits.length === 0) return 0;
+  const filteredTasks = tasks.filter((t) => t.frequency === frequency);
+  if (filteredTasks.length === 0) return 0;
 
   const daysInMonth = getDaysInMonth(month, year);
   const today = new Date();
@@ -63,22 +64,22 @@ export function calculateCompletionRate(
   if (frequency === 'daily') {
     for (let day = 1; day <= maxDay; day++) {
       const date = formatDate(year, month, day);
-      for (const habit of filteredHabits) {
-        if (!isScheduledForDay(habit, year, month, day)) continue;
+      for (const task of filteredTasks) {
+        if (!isScheduledForDay(task, year, month, day)) continue;
         total++;
-        if (completions[date]?.[habit.id]) completed++;
+        if (completionMap[date]?.[task.id]) completed++;
       }
     }
   } else {
     const weeks = Math.ceil(maxDay / 7);
-    total = filteredHabits.length * weeks;
+    total = filteredTasks.length * weeks;
     for (let week = 0; week < weeks; week++) {
       const weekStart = week * 7 + 1;
       const weekEnd = Math.min(weekStart + 6, daysInMonth);
-      for (const habit of filteredHabits) {
+      for (const task of filteredTasks) {
         for (let day = weekStart; day <= weekEnd; day++) {
           const date = formatDate(year, month, day);
-          if (completions[date]?.[habit.id]) {
+          if (completionMap[date]?.[task.id]) {
             completed++;
             break;
           }
@@ -91,13 +92,13 @@ export function calculateCompletionRate(
 }
 
 export function getWeeklyCompletionRates(
-  habits: Habit[],
-  completions: Record<string, Record<string, boolean>>,
+  tasks: Task[],
+  completionMap: Record<string, Record<string, string>>,
   month: number,
   year: number
 ): number[] {
-  const dailyHabits = habits.filter((h) => h.frequency === 'daily');
-  if (dailyHabits.length === 0) return [0, 0, 0, 0];
+  const dailyTasks = tasks.filter((t) => t.frequency === 'daily');
+  if (dailyTasks.length === 0) return [0, 0, 0, 0];
 
   const daysInMonth = getDaysInMonth(month, year);
   const rates: number[] = [];
@@ -110,10 +111,10 @@ export function getWeeklyCompletionRates(
 
     for (let day = start; day <= end; day++) {
       const date = formatDate(year, month, day);
-      for (const habit of dailyHabits) {
-        if (!isScheduledForDay(habit, year, month, day)) continue;
+      for (const task of dailyTasks) {
+        if (!isScheduledForDay(task, year, month, day)) continue;
         total++;
-        if (completions[date]?.[habit.id]) completed++;
+        if (completionMap[date]?.[task.id]) completed++;
       }
     }
     rates.push(total === 0 ? 0 : Math.round((completed / total) * 100));
@@ -123,27 +124,27 @@ export function getWeeklyCompletionRates(
 }
 
 export function getDailyCompletionData(
-  habits: Habit[],
-  completions: Record<string, Record<string, boolean>>,
+  tasks: Task[],
+  completionMap: Record<string, Record<string, string>>,
   month: number,
   year: number
 ): { day: number; rate: number }[] {
-  const dailyHabits = habits.filter((h) => h.frequency === 'daily');
-  if (dailyHabits.length === 0) return [];
+  const dailyTasks = tasks.filter((t) => t.frequency === 'daily');
+  if (dailyTasks.length === 0) return [];
 
   const daysInMonth = getDaysInMonth(month, year);
   const data: { day: number; rate: number }[] = [];
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = formatDate(year, month, day);
-    const scheduled = dailyHabits.filter((h) => isScheduledForDay(h, year, month, day));
+    const scheduled = dailyTasks.filter((t) => isScheduledForDay(t, year, month, day));
     if (scheduled.length === 0) {
       data.push({ day, rate: 0 });
       continue;
     }
     let completed = 0;
-    for (const habit of scheduled) {
-      if (completions[date]?.[habit.id]) completed++;
+    for (const task of scheduled) {
+      if (completionMap[date]?.[task.id]) completed++;
     }
     data.push({ day, rate: Math.round((completed / scheduled.length) * 100) });
   }

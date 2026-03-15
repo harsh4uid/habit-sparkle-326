@@ -1,10 +1,15 @@
-import { useHabitStore } from '@/stores/useHabitStore';
+import { useUIStore, type Task } from '@/stores/useHabitStore';
 import { getWeeklyCompletionRates } from '@/lib/habitUtils';
 import { CompletionRing } from './CompletionRing';
 
-export function WeeklyStats() {
-  const { habits, completions, selectedMonth, selectedYear } = useHabitStore();
-  const rates = getWeeklyCompletionRates(habits, completions, selectedMonth, selectedYear);
+interface WeeklyStatsProps {
+  tasks: Task[];
+  completionMap: Record<string, Record<string, string>>;
+}
+
+export function WeeklyStats({ tasks, completionMap }: WeeklyStatsProps) {
+  const { selectedMonth, selectedYear } = useUIStore();
+  const rates = getWeeklyCompletionRates(tasks, completionMap, selectedMonth, selectedYear);
 
   return (
     <div className="space-y-3">
