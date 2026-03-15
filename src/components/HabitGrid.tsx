@@ -1,34 +1,40 @@
 import { motion } from 'framer-motion';
 import { Pencil, Trash2 } from 'lucide-react';
-import { useHabitStore, Habit } from '@/stores/useHabitStore';
-import { getDaysInMonth, formatDate, categoryColors, isScheduledForDay } from '@/lib/habitUtils';
+import { useUIStore, type Task } from '@/stores/useHabitStore';
+import { useCategories } from '@/hooks/useCategories';
+import { getDaysInMonth, formatDate, isScheduledForDay, isPast, isToday } from '@/lib/habitUtils';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface HabitGridProps {
-  onEditHabit: (habit: Habit) => void;
+  tasks: Task[];
+  completionMap: Record<string, Record<string, string>>;
+  onToggle: (date: string, taskId: string) => void;
+  onEditTask: (task: Task) => void;
+  onDeleteTask: (id: string) => void;
 }
 
-export function HabitGrid({ onEditHabit }: HabitGridProps) {
-  const { habits, completions, selectedMonth, selectedYear, selectedCategory, toggleCompletion, deleteHabit } = useHabitStore();
+export function HabitGrid({ tasks, completionMap, onToggle, onEditTask, onDeleteTask }: HabitGridProps) {
+  const { selectedMonth, selectedYear, selectedCategory } = useUIStore();
+  const { categories } = useCategories();
 
   const daysInMonth = getDaysInMonth(selectedMonth, selectedYear);
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-  const filteredHabits = habits.filter((h) => {
-    if (h.frequency !== 'daily') return false;
+  const filteredTasks = tasks.filter((t) => {
+    if (t.frequency !== 'daily') return false;
     if (selectedCategory === 'all') return true;
-    return h.category === selectedCategory;
+    return t.category_id === selectedCategory;
   });
 
   const today = new Date();
   const isCurrentMonth = selectedMonth === today.getMonth() && selectedYear === today.getFullYear();
   const todayDate = today.getDate();
+
+  const getCategoryColor = (categoryId: string) => {
+    return categories.find(c => c.id === categoryId)?.color || '#3b82f6';
+  };
 
   return (
     <div className="overflow-x-auto">
@@ -52,29 +58,30 @@ export function HabitGrid({ onEditHabit }: HabitGridProps) {
           <div className="w-16 shrink-0" />
         </div>
 
-        {/* Habit rows */}
-        {filteredHabits.map((habit, index) => {
-          const colors = categoryColors[habit.category];
+        {/* Task rows */}
+        {filteredTasks.map((task, index) => {
+          const color = getCategoryColor(task.category_id);
           return (
             <motion.div
-              key={habit.id}
+              key={task.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03, duration: 0.2 }}
               className="flex items-center gap-0 group"
             >
-              {/* Habit name */}
               <div className="w-48 shrink-0 flex items-center gap-2 pr-3 py-1.5">
-                <div className={cn('h-2 w-2 rounded-full shrink-0', colors.dot)} />
-                <span className="text-sm font-medium text-foreground truncate">{habit.name}</span>
+                <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                <span className="text-sm font-medium text-foreground truncate">{task.name}</span>
               </div>
 
-              {/* Day cells */}
               {days.map((day) => {
                 const date = formatDate(selectedYear, selectedMonth, day);
-                const completed = !!completions[date]?.[habit.id];
+                const completed = !!completionMap[date]?.[task.id];
+                const scheduled = isScheduledForDay(task, selectedYear, selectedMonth, day);
+                const past = isPast(selectedYear, selectedMonth, day);
+                const isTodayCell = isToday(selectedYear, selectedMonth, day);
                 const isFuture = isCurrentMonth && day > todayDate;
-                const scheduled = isScheduledForDay(habit, selectedYear, selectedMonth, day);
+                const missed = past && scheduled && !completed;
 
                 return (
                   <div key={day} className="flex-1 min-w-[28px] flex items-center justify-center py-1">
@@ -82,21 +89,27 @@ export function HabitGrid({ onEditHabit }: HabitGridProps) {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <motion.button
-                            whileTap={{ scale: 0.85 }}
-                            disabled={isFuture}
-                            onClick={() => toggleCompletion(date, habit.id)}
+                            whileTap={isTodayCell ? { scale: 0.85 } : undefined}
+                            disabled={!isTodayCell}
+                            onClick={() => isTodayCell && onToggle(date, task.id)}
                             className={cn(
                               'h-6 w-6 rounded-md border transition-all duration-200',
                               completed
                                 ? 'bg-accent border-accent shadow-sm shadow-accent/25'
-                                : isFuture
-                                  ? 'border-border/50 bg-transparent cursor-not-allowed opacity-30'
-                                  : 'border-border hover:border-primary/40 hover:bg-primary/5 cursor-pointer'
+                                : missed
+                                  ? 'bg-destructive/20 border-destructive/50'
+                                  : isFuture
+                                    ? 'border-border/50 bg-transparent cursor-not-allowed opacity-30'
+                                    : isTodayCell
+                                      ? 'border-border hover:border-primary/40 hover:bg-primary/5 cursor-pointer'
+                                      : 'border-border/50 bg-transparent cursor-not-allowed opacity-50'
                             )}
                           />
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs">
-                          {habit.name} — Day {day}
+                          {missed ? `Missed — ${task.name}` : `${task.name} — Day ${day}`}
+                          {past && !completed && !missed ? '' : ''}
+                          {!isTodayCell && !isFuture && !missed ? ' (locked)' : ''}
                         </TooltipContent>
                       </Tooltip>
                     ) : (
@@ -106,12 +119,11 @@ export function HabitGrid({ onEditHabit }: HabitGridProps) {
                 );
               })}
 
-              {/* Actions */}
               <div className="w-16 shrink-0 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEditHabit(habit)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEditTask(task)}>
                   <Pencil className="h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHabit(habit.id)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onDeleteTask(task.id)}>
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
@@ -119,9 +131,9 @@ export function HabitGrid({ onEditHabit }: HabitGridProps) {
           );
         })}
 
-        {filteredHabits.length === 0 && (
+        {filteredTasks.length === 0 && (
           <div className="text-center py-12 text-muted-foreground text-sm">
-            No habits found. Add one to get started!
+            No tasks found. Add one to get started!
           </div>
         )}
       </div>

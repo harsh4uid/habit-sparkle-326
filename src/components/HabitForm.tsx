@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useHabitStore, Habit, HabitCategory, HabitFrequency, Weekday } from '@/stores/useHabitStore';
-import { categoryLabels } from '@/lib/habitUtils';
+import { useCategories } from '@/hooks/useCategories';
+import type { Task, Weekday } from '@/stores/useHabitStore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,41 +9,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 
 const DAY_LABELS: { value: Weekday; short: string }[] = [
-  { value: 0, short: 'Sun' },
-  { value: 1, short: 'Mon' },
-  { value: 2, short: 'Tue' },
-  { value: 3, short: 'Wed' },
-  { value: 4, short: 'Thu' },
-  { value: 5, short: 'Fri' },
-  { value: 6, short: 'Sat' },
+  { value: 0, short: 'Sun' }, { value: 1, short: 'Mon' }, { value: 2, short: 'Tue' },
+  { value: 3, short: 'Wed' }, { value: 4, short: 'Thu' }, { value: 5, short: 'Fri' }, { value: 6, short: 'Sat' },
 ];
 
-interface HabitFormProps {
+interface TaskFormProps {
   open: boolean;
   onClose: () => void;
-  editingHabit?: Habit | null;
+  editingTask?: Task | null;
+  onSubmit: (data: { name: string; category_id: string; frequency: string; scheduled_days: number[] }) => void;
 }
 
-export function HabitForm({ open, onClose, editingHabit }: HabitFormProps) {
-  const { addHabit, updateHabit } = useHabitStore();
+export function HabitForm({ open, onClose, editingTask, onSubmit }: TaskFormProps) {
+  const { categories } = useCategories();
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<HabitCategory>('health');
-  const [frequency, setFrequency] = useState<HabitFrequency>('daily');
+  const [categoryId, setCategoryId] = useState('');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
   const [scheduledDays, setScheduledDays] = useState<Weekday[]>([]);
 
   useEffect(() => {
-    if (editingHabit) {
-      setName(editingHabit.name);
-      setCategory(editingHabit.category);
-      setFrequency(editingHabit.frequency);
-      setScheduledDays(editingHabit.scheduledDays || []);
+    if (editingTask) {
+      setName(editingTask.name);
+      setCategoryId(editingTask.category_id);
+      setFrequency(editingTask.frequency as 'daily' | 'weekly');
+      setScheduledDays((editingTask.scheduled_days || []) as Weekday[]);
     } else {
       setName('');
-      setCategory('health');
+      setCategoryId(categories[0]?.id || '');
       setFrequency('daily');
       setScheduledDays([]);
     }
-  }, [editingHabit, open]);
+  }, [editingTask, open, categories]);
 
   const toggleDay = (day: Weekday) => {
     setScheduledDays((prev) =>
@@ -53,20 +49,13 @@ export function HabitForm({ open, onClose, editingHabit }: HabitFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-
-    const habitData = {
+    if (!name.trim() || !categoryId) return;
+    onSubmit({
       name: name.trim(),
-      category,
+      category_id: categoryId,
       frequency,
-      scheduledDays: frequency === 'daily' ? scheduledDays : undefined,
-    };
-
-    if (editingHabit) {
-      updateHabit(editingHabit.id, habitData);
-    } else {
-      addHabit(habitData);
-    }
+      scheduled_days: frequency === 'daily' ? scheduledDays : [],
+    });
     onClose();
   };
 
@@ -74,35 +63,29 @@ export function HabitForm({ open, onClose, editingHabit }: HabitFormProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{editingHabit ? 'Edit Habit' : 'New Habit'}</DialogTitle>
+          <DialogTitle>{editingTask ? 'Edit Task' : 'New Task'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Habit Name</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Morning Exercise"
-              autoFocus
-            />
+            <Label htmlFor="name">Task Name</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Morning Exercise" autoFocus />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Category</Label>
-              <Select value={category} onValueChange={(v) => setCategory(v as HabitCategory)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(categoryLabels) as HabitCategory[]).map((cat) => (
-                    <SelectItem key={cat} value={cat}>{categoryLabels[cat]}</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Frequency</Label>
-              <Select value={frequency} onValueChange={(v) => setFrequency(v as HabitFrequency)}>
+              <Select value={frequency} onValueChange={(v) => setFrequency(v as 'daily' | 'weekly')}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="daily">Daily</SelectItem>
@@ -137,7 +120,7 @@ export function HabitForm({ open, onClose, editingHabit }: HabitFormProps) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit">{editingHabit ? 'Save Changes' : 'Add Habit'}</Button>
+            <Button type="submit">{editingTask ? 'Save Changes' : 'Add Task'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
