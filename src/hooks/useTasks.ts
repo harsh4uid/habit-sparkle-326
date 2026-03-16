@@ -24,7 +24,7 @@ export function useTasks() {
   });
 
   const addTask = useMutation({
-    mutationFn: async (task: { name: string; category_id: string; frequency: string; scheduled_days: number[] }) => {
+    mutationFn: async (task: { name: string; category_id: string; frequency: string; scheduled_days: number[]; difficulty?: string }) => {
       if (!user) throw new Error('Not authenticated');
       const { data, error } = await supabase
         .from('tasks')
@@ -42,7 +42,7 @@ export function useTasks() {
   });
 
   const updateTask = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; name?: string; category_id?: string; frequency?: string; scheduled_days?: number[] }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; name?: string; category_id?: string; frequency?: string; scheduled_days?: number[]; difficulty?: string }) => {
       const { error } = await supabase.from('tasks').update(updates).eq('id', id);
       if (error) throw error;
     },
