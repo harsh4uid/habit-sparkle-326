@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achievement_key: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_key: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_key?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           color: string
@@ -73,12 +94,79 @@ export type Database = {
           },
         ]
       }
+      focus_sessions: {
+        Row: {
+          completed_at: string | null
+          duration_seconds: number
+          id: string
+          started_at: string
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          duration_seconds?: number
+          id?: string
+          started_at?: string
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          duration_seconds?: number
+          id?: string
+          started_at?: string
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "focus_sessions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          created_at: string
+          current_value: number
+          id: string
+          target_value: number
+          title: string
+          unit: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number
+          id?: string
+          target_value?: number
+          title: string
+          unit?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number
+          id?: string
+          target_value?: number
+          title?: string
+          unit?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           display_name: string | null
           email: string | null
           id: string
+          level: number
+          total_xp: number
           weekly_planning_enabled: boolean
         }
         Insert: {
@@ -86,6 +174,8 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          level?: number
+          total_xp?: number
           weekly_planning_enabled?: boolean
         }
         Update: {
@@ -93,7 +183,30 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          level?: number
+          total_xp?: number
           weekly_planning_enabled?: boolean
+        }
+        Relationships: []
+      }
+      scratchpad_notes: {
+        Row: {
+          content: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -101,6 +214,7 @@ export type Database = {
         Row: {
           category_id: string
           created_at: string
+          difficulty: string
           frequency: string
           id: string
           name: string
@@ -110,6 +224,7 @@ export type Database = {
         Insert: {
           category_id: string
           created_at?: string
+          difficulty?: string
           frequency?: string
           id?: string
           name: string
@@ -119,6 +234,7 @@ export type Database = {
         Update: {
           category_id?: string
           created_at?: string
+          difficulty?: string
           frequency?: string
           id?: string
           name?: string
