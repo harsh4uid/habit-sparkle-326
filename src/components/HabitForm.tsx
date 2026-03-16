@@ -17,7 +17,7 @@ interface TaskFormProps {
   open: boolean;
   onClose: () => void;
   editingTask?: Task | null;
-  onSubmit: (data: { name: string; category_id: string; frequency: string; scheduled_days: number[] }) => void;
+  onSubmit: (data: { name: string; category_id: string; frequency: string; scheduled_days: number[]; difficulty: string }) => void;
 }
 
 export function HabitForm({ open, onClose, editingTask, onSubmit }: TaskFormProps) {
@@ -26,6 +26,7 @@ export function HabitForm({ open, onClose, editingTask, onSubmit }: TaskFormProp
   const [categoryId, setCategoryId] = useState('');
   const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
   const [scheduledDays, setScheduledDays] = useState<Weekday[]>([]);
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
 
   useEffect(() => {
     if (editingTask) {
@@ -33,11 +34,13 @@ export function HabitForm({ open, onClose, editingTask, onSubmit }: TaskFormProp
       setCategoryId(editingTask.category_id);
       setFrequency(editingTask.frequency as 'daily' | 'weekly');
       setScheduledDays((editingTask.scheduled_days || []) as Weekday[]);
+      setDifficulty((editingTask.difficulty as 'easy' | 'medium' | 'hard') || 'medium');
     } else {
       setName('');
       setCategoryId(categories[0]?.id || '');
       setFrequency('daily');
       setScheduledDays([]);
+      setDifficulty('medium');
     }
   }, [editingTask, open, categories]);
 
@@ -55,6 +58,7 @@ export function HabitForm({ open, onClose, editingTask, onSubmit }: TaskFormProp
       category_id: categoryId,
       frequency,
       scheduled_days: frequency === 'daily' ? scheduledDays : [],
+      difficulty,
     });
     onClose();
   };
@@ -71,11 +75,11 @@ export function HabitForm({ open, onClose, editingTask, onSubmit }: TaskFormProp
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Morning Exercise" autoFocus />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2">
               <Label>Category</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
@@ -90,6 +94,17 @@ export function HabitForm({ open, onClose, editingTask, onSubmit }: TaskFormProp
                 <SelectContent>
                   <SelectItem value="daily">Daily</SelectItem>
                   <SelectItem value="weekly">Weekly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Difficulty</Label>
+              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as 'easy' | 'medium' | 'hard')}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">Easy (10 XP)</SelectItem>
+                  <SelectItem value="medium">Medium (25 XP)</SelectItem>
+                  <SelectItem value="hard">Hard (50 XP)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

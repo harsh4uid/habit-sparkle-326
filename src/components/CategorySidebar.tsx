@@ -3,13 +3,13 @@ import { useUIStore } from '@/stores/useHabitStore';
 import { useCategories } from '@/hooks/useCategories';
 import { useTasks } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
-import { LayoutGrid, Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import { LayoutGrid, Plus, Pencil, Trash2, X, Check, StickyNote, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CATEGORY_COLORS } from '@/lib/habitUtils';
 
 export function CategorySidebar() {
-  const { selectedCategory, setSelectedCategory } = useUIStore();
+  const { selectedCategory, setSelectedCategory, setScratchpadOpen, scratchpadOpen } = useUIStore();
   const { categories, addCategory, updateCategory, deleteCategory } = useCategories();
   const { tasks } = useTasks();
 
@@ -35,7 +35,7 @@ export function CategorySidebar() {
   const totalDailyTasks = tasks.filter(t => t.frequency === 'daily').length;
 
   return (
-    <aside className="w-52 shrink-0 border-r border-border bg-card p-4 hidden lg:block">
+    <aside className="w-52 shrink-0 border-r border-border bg-card p-4 hidden lg:block overflow-y-auto">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categories</p>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setAdding(!adding)}>
@@ -64,10 +64,10 @@ export function CategorySidebar() {
 
       <nav className="space-y-1">
         <button
-          onClick={() => setSelectedCategory('all')}
+          onClick={() => { setSelectedCategory('all'); setScratchpadOpen(false); }}
           className={cn(
             'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-            selectedCategory === 'all'
+            selectedCategory === 'all' && !scratchpadOpen
               ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           )}
@@ -79,7 +79,7 @@ export function CategorySidebar() {
 
         {categories.map((cat) => {
           const count = tasks.filter(t => t.category_id === cat.id && t.frequency === 'daily').length;
-          const active = selectedCategory === cat.id;
+          const active = selectedCategory === cat.id && !scratchpadOpen;
 
           return (
             <div key={cat.id} className="group relative">
@@ -101,7 +101,7 @@ export function CategorySidebar() {
                 </div>
               ) : (
                 <button
-                  onClick={() => setSelectedCategory(cat.id)}
+                  onClick={() => { setSelectedCategory(cat.id); setScratchpadOpen(false); }}
                   className={cn(
                     'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                     active
@@ -128,6 +128,22 @@ export function CategorySidebar() {
           );
         })}
       </nav>
+
+      <div className="mt-6 pt-4 border-t border-border space-y-1">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Tools</p>
+        <button
+          onClick={() => setScratchpadOpen(!scratchpadOpen)}
+          className={cn(
+            'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+            scratchpadOpen
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+        >
+          <StickyNote className="h-4 w-4" />
+          <span className="flex-1 text-left">Scratchpad</span>
+        </button>
+      </div>
     </aside>
   );
 }

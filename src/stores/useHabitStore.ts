@@ -16,6 +16,7 @@ export interface Task {
   category_id: string;
   frequency: 'daily' | 'weekly';
   scheduled_days: number[];
+  difficulty: 'easy' | 'medium' | 'hard';
   user_id: string;
   created_at: string;
 }
@@ -35,12 +36,18 @@ export interface Completion {
 interface UIState {
   selectedMonth: number;
   selectedYear: number;
-  selectedCategory: string; // category id or 'all'
+  selectedCategory: string;
   weeklyPlanningEnabled: boolean;
+  screenshotMode: boolean;
+  focusModeOpen: boolean;
+  scratchpadOpen: boolean;
   setSelectedMonth: (month: number) => void;
   setSelectedYear: (year: number) => void;
   setSelectedCategory: (cat: string) => void;
   setWeeklyPlanningEnabled: (enabled: boolean) => void;
+  setScreenshotMode: (enabled: boolean) => void;
+  setFocusModeOpen: (open: boolean) => void;
+  setScratchpadOpen: (open: boolean) => void;
 }
 
 const now = new Date();
@@ -50,11 +57,16 @@ export const useUIStore = create<UIState>((set) => ({
   selectedYear: now.getFullYear(),
   selectedCategory: 'all',
   weeklyPlanningEnabled: true,
+  screenshotMode: false,
+  focusModeOpen: false,
+  scratchpadOpen: false,
   setSelectedMonth: (month) => set({ selectedMonth: month }),
   setSelectedYear: (year) => set({ selectedYear: year }),
   setSelectedCategory: (cat) => set({ selectedCategory: cat }),
   setWeeklyPlanningEnabled: (enabled) => set({ weeklyPlanningEnabled: enabled }),
+  setScreenshotMode: (enabled) => set({ screenshotMode: enabled }),
+  setFocusModeOpen: (open) => set({ focusModeOpen: open }),
+  setScratchpadOpen: (open) => set({ scratchpadOpen: open }),
 }));
 
-// Re-export for backward compat
 export const useHabitStore = useUIStore;
