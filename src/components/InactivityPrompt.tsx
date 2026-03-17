@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Task } from '@/stores/useHabitStore';
 import { getTodayString, isScheduledForDay } from '@/lib/habitUtils';
+import { getRandomInactivityMessage } from './MotivationalToast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Zap } from 'lucide-react';
@@ -11,11 +12,12 @@ interface Props {
   onStartFocus: (taskId?: string) => void;
 }
 
-const INACTIVITY_MS = 3 * 60 * 60 * 1000; // 3 hours
+const INACTIVITY_MS = 3 * 60 * 60 * 1000;
 
 export function InactivityPrompt({ tasks, completionMap, onStartFocus }: Props) {
   const [show, setShow] = useState(false);
   const [lastInteraction, setLastInteraction] = useState(Date.now());
+  const [message, setMessage] = useState('');
 
   const resetTimer = useCallback(() => {
     setLastInteraction(Date.now());
@@ -39,7 +41,10 @@ export function InactivityPrompt({ tasks, completionMap, onStartFocus }: Props) 
             isScheduledForDay(t, today.getFullYear(), today.getMonth(), today.getDate()) &&
             !completionMap[todayStr]?.[t.id]
         );
-        if (pending.length > 0) setShow(true);
+        if (pending.length > 0) {
+          setMessage(getRandomInactivityMessage());
+          setShow(true);
+        }
       }
     }, 60000);
     return () => clearInterval(interval);
@@ -65,11 +70,11 @@ export function InactivityPrompt({ tasks, completionMap, onStartFocus }: Props) 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-chart-4" />
-            You've been inactive for a while
+            Time to get back on track
           </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          You have been inactive for 3 hours. Start with a small task — momentum builds motivation!
+          {message || "You have been inactive for a while. Start with a small task — momentum builds motivation!"}
         </p>
         <DialogFooter>
           <Button variant="outline" onClick={() => setShow(false)}>Dismiss</Button>

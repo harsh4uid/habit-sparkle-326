@@ -21,7 +21,6 @@ export interface Task {
   created_at: string;
 }
 
-// Keep Habit as alias for backward compat
 export type Habit = Task;
 export type HabitCategory = string;
 export type HabitFrequency = 'daily' | 'weekly';
@@ -33,6 +32,8 @@ export interface Completion {
   user_id: string;
 }
 
+export type MobileView = 'dashboard' | 'tasks' | 'focus' | 'tools' | 'profile';
+
 interface UIState {
   selectedMonth: number;
   selectedYear: number;
@@ -41,6 +42,8 @@ interface UIState {
   screenshotMode: boolean;
   focusModeOpen: boolean;
   scratchpadOpen: boolean;
+  mobileView: MobileView;
+  autoSchedulerOpen: boolean;
   setSelectedMonth: (month: number) => void;
   setSelectedYear: (year: number) => void;
   setSelectedCategory: (cat: string) => void;
@@ -48,6 +51,8 @@ interface UIState {
   setScreenshotMode: (enabled: boolean) => void;
   setFocusModeOpen: (open: boolean) => void;
   setScratchpadOpen: (open: boolean) => void;
+  setMobileView: (view: MobileView) => void;
+  setAutoSchedulerOpen: (open: boolean) => void;
 }
 
 const now = new Date();
@@ -60,6 +65,8 @@ export const useUIStore = create<UIState>((set) => ({
   screenshotMode: false,
   focusModeOpen: false,
   scratchpadOpen: false,
+  mobileView: 'dashboard',
+  autoSchedulerOpen: false,
   setSelectedMonth: (month) => set({ selectedMonth: month }),
   setSelectedYear: (year) => set({ selectedYear: year }),
   setSelectedCategory: (cat) => set({ selectedCategory: cat }),
@@ -67,6 +74,8 @@ export const useUIStore = create<UIState>((set) => ({
   setScreenshotMode: (enabled) => set({ screenshotMode: enabled }),
   setFocusModeOpen: (open) => set({ focusModeOpen: open }),
   setScratchpadOpen: (open) => set({ scratchpadOpen: open }),
+  setMobileView: (view) => set({ mobileView: view }),
+  setAutoSchedulerOpen: (open) => set({ autoSchedulerOpen: open }),
 }));
 
 export const useHabitStore = useUIStore;

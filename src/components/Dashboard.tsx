@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { Header } from './Header';
 import { CategorySidebar } from './CategorySidebar';
 import { HabitGrid } from './HabitGrid';
@@ -13,6 +13,16 @@ import { FocusMode } from './FocusMode';
 import { Scratchpad } from './Scratchpad';
 import { WeeklyChallenges } from './WeeklyChallenges';
 import { InactivityPrompt } from './InactivityPrompt';
+import { MobileNav } from './MobileNav';
+import { AICoach } from './AICoach';
+import { MoodTracker } from './MoodTracker';
+import { HeatmapCalendar } from './HeatmapCalendar';
+import { FailureRecovery } from './FailureRecovery';
+import { AutoScheduler } from './AutoScheduler';
+import { BrainTools } from './BrainTools';
+import { TimeBlockCalendar } from './TimeBlockCalendar';
+import { MobileProfileView } from './MobileProfileView';
+import { showMotivationalToast } from './MotivationalToast';
 import { useUIStore, type Task } from '@/stores/useHabitStore';
 import { useTasks } from '@/hooks/useTasks';
 import { useCompletions } from '@/hooks/useCompletions';
@@ -54,7 +64,11 @@ export function Dashboard() {
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const { signOut } = useAuth();
-  const { selectedMonth, selectedYear, weeklyPlanningEnabled, setWeeklyPlanningEnabled, screenshotMode, focusModeOpen, setFocusModeOpen, scratchpadOpen } = useUIStore();
+  const {
+    selectedMonth, selectedYear, weeklyPlanningEnabled, setWeeklyPlanningEnabled,
+    screenshotMode, focusModeOpen, setFocusModeOpen, scratchpadOpen,
+    mobileView, autoSchedulerOpen, setAutoSchedulerOpen
+  } = useUIStore();
   const { tasks, addTask, updateTask, deleteTask } = useTasks();
   const { completionMap, toggleCompletion } = useCompletions(selectedMonth, selectedYear);
   const { awardXP, unlockAchievement } = useGamification();
@@ -88,11 +102,11 @@ export function Dashboard() {
   const handleToggle = (date: string, taskId: string) => {
     toggleCompletion.mutate({ date, taskId }, {
       onSuccess: () => {
-        // Award XP on completion (not on un-completion)
         const task = tasks.find((t) => t.id === taskId);
         if (task && !completionMap[date]?.[taskId]) {
           awardXP.mutate(task.difficulty || 'medium');
           unlockAchievement.mutate('FIRST_TASK');
+          showMotivationalToast();
         }
       },
     });
@@ -117,89 +131,170 @@ export function Dashboard() {
     }
   };
 
+  // Mobile content renderer
+  const renderMobileContent = () => {
+    switch (mobileView) {
+      case 'dashboard':
+        return (
+          <>
+            <ProductivityDashboard tasks={tasks} completionMap={completionMap} streak={streak} />
+            <MoodTracker />
+            <AICoach tasks={tasks} completionMap={completionMap} streak={streak} />
+            <WeeklyChallenges tasks={tasks} completionMap={completionMap} />
+            <FailureRecovery tasks={tasks} completionMap={completionMap} />
+          </>
+        );
+      case 'tasks':
+        return (
+          <>
+            <div className="rounded-xl border border-border bg-card p-4 pulse-shadow">
+              <h2 className="text-sm font-semibold text-foreground mb-3">Daily Tasks</h2>
+              <HabitGrid
+                tasks={tasks}
+                completionMap={completionMap}
+                onToggle={handleToggle}
+                onEditTask={handleEditTask}
+                onDeleteTask={(id) => deleteTask.mutate(id)}
+              />
+            </div>
+            <TimeBlockCalendar tasks={tasks} />
+            {weeklyPlanningEnabled && (
+              <div className="rounded-xl border border-border bg-card p-4 pulse-shadow">
+                <WeeklyHabits tasks={tasks} completionMap={completionMap} onToggle={handleToggle} />
+              </div>
+            )}
+          </>
+        );
+      case 'tools':
+        return <BrainTools />;
+      case 'profile':
+        return <MobileProfileView darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-background">
-      <Header
-        darkMode={darkMode}
-        onToggleDarkMode={() => setDarkMode(!darkMode)}
-        onAddTask={() => setFormOpen(true)}
-        onExportPDF={() => exportAs('pdf')}
-        onExportPNG={() => exportAs('png')}
-        onSignOut={signOut}
-      />
+      {/* Header - hidden on mobile */}
+      <div className="hidden md:block">
+        <Header
+          darkMode={darkMode}
+          onToggleDarkMode={() => setDarkMode(!darkMode)}
+          onAddTask={() => setFormOpen(true)}
+          onExportPDF={() => exportAs('pdf')}
+          onExportPNG={() => exportAs('png')}
+          onSignOut={signOut}
+        />
+      </div>
+
+      {/* Mobile header */}
+      <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-xs">WS</span>
+          </div>
+          <h1 className="text-lg font-bold text-foreground">Work Scheduler</h1>
+        </div>
+      </header>
 
       <div className="flex flex-1 overflow-hidden" ref={dashboardRef}>
-        {!screenshotMode && <CategorySidebar />}
+        {/* Sidebar - desktop only */}
+        {!screenshotMode && <div className="hidden lg:block"><CategorySidebar /></div>}
 
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          {scratchpadOpen ? (
-            <Scratchpad />
-          ) : (
-            <>
-              {/* Productivity Dashboard */}
-              <ProductivityDashboard tasks={tasks} completionMap={completionMap} streak={streak} />
+        {/* Main content - mobile */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 pb-24 md:pb-6">
+          {/* Mobile view */}
+          <div className="md:hidden">
+            {scratchpadOpen ? <Scratchpad /> : renderMobileContent()}
+          </div>
 
-              {/* Daily Tasks Grid */}
-              <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
-                <h2 className="text-sm font-semibold text-foreground mb-4">Daily Tasks</h2>
-                <HabitGrid
-                  tasks={tasks}
-                  completionMap={completionMap}
-                  onToggle={handleToggle}
-                  onEditTask={handleEditTask}
-                  onDeleteTask={(id) => deleteTask.mutate(id)}
-                />
-              </div>
+          {/* Desktop view */}
+          <div className="hidden md:block space-y-6">
+            {scratchpadOpen ? (
+              <Scratchpad />
+            ) : (
+              <>
+                <ProductivityDashboard tasks={tasks} completionMap={completionMap} streak={streak} />
 
-              {/* Weekly Challenges */}
-              <WeeklyChallenges tasks={tasks} completionMap={completionMap} />
+                {/* AI Coach + Mood row */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-2">
+                    <AICoach tasks={tasks} completionMap={completionMap} streak={streak} />
+                  </div>
+                  <MoodTracker />
+                </div>
 
-              {/* Mobile/Tablet Analytics */}
-              <div className="xl:hidden space-y-6">
+                <FailureRecovery tasks={tasks} completionMap={completionMap} />
+
                 <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
-                  <h3 className="text-sm font-semibold text-foreground mb-4">Analytics</h3>
-                  <div className="flex flex-col sm:flex-row items-center gap-8">
-                    <CompletionRing percentage={overallRate} size={120} strokeWidth={8} label="Overall" />
-                    <div className="flex-1 w-full">
-                      <WeeklyStats tasks={tasks} completionMap={completionMap} />
+                  <h2 className="text-sm font-semibold text-foreground mb-4">Daily Tasks</h2>
+                  <HabitGrid
+                    tasks={tasks}
+                    completionMap={completionMap}
+                    onToggle={handleToggle}
+                    onEditTask={handleEditTask}
+                    onDeleteTask={(id) => deleteTask.mutate(id)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <WeeklyChallenges tasks={tasks} completionMap={completionMap} />
+                  <TimeBlockCalendar tasks={tasks} />
+                </div>
+
+                {/* Mobile/Tablet Analytics */}
+                <div className="xl:hidden space-y-6">
+                  <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
+                    <h3 className="text-sm font-semibold text-foreground mb-4">Analytics</h3>
+                    <div className="flex flex-col sm:flex-row items-center gap-8">
+                      <CompletionRing percentage={overallRate} size={120} strokeWidth={8} label="Overall" />
+                      <div className="flex-1 w-full">
+                        <WeeklyStats tasks={tasks} completionMap={completionMap} />
+                      </div>
                     </div>
                   </div>
+                  <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
+                    <ProgressChart tasks={tasks} completionMap={completionMap} />
+                  </div>
+                  <HeatmapCalendar tasks={tasks} completionMap={completionMap} />
                 </div>
-                <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
-                  <ProgressChart tasks={tasks} completionMap={completionMap} />
-                </div>
-              </div>
 
-              {/* Weekly Planning Toggle */}
-              {!screenshotMode && (
-                <div className="flex items-center gap-3">
-                  <Switch
-                    id="weekly-toggle"
-                    checked={weeklyPlanningEnabled}
-                    onCheckedChange={setWeeklyPlanningEnabled}
-                  />
-                  <Label htmlFor="weekly-toggle" className="text-sm font-medium text-foreground cursor-pointer">
-                    Enable Weekly Planning
-                  </Label>
-                </div>
-              )}
+                {!screenshotMode && (
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      id="weekly-toggle"
+                      checked={weeklyPlanningEnabled}
+                      onCheckedChange={setWeeklyPlanningEnabled}
+                    />
+                    <Label htmlFor="weekly-toggle" className="text-sm font-medium text-foreground cursor-pointer">
+                      Enable Weekly Planning
+                    </Label>
+                  </div>
+                )}
 
-              {/* Weekly Tasks */}
-              {weeklyPlanningEnabled && (
-                <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
-                  <WeeklyHabits tasks={tasks} completionMap={completionMap} onToggle={handleToggle} />
-                </div>
-              )}
-            </>
-          )}
+                {weeklyPlanningEnabled && (
+                  <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
+                    <WeeklyHabits tasks={tasks} completionMap={completionMap} onToggle={handleToggle} />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </main>
 
+        {/* Analytics panel - desktop only */}
         {!screenshotMode && <AnalyticsPanel tasks={tasks} completionMap={completionMap} />}
       </div>
+
+      {/* Mobile bottom nav */}
+      <MobileNav onAddTask={() => setFormOpen(true)} />
 
       <HabitForm open={formOpen} onClose={handleCloseForm} editingTask={editingTask} onSubmit={handleSubmitTask} />
 
       {focusModeOpen && <FocusMode tasks={tasks} onClose={() => setFocusModeOpen(false)} />}
+
+      <AutoScheduler open={autoSchedulerOpen} onClose={() => setAutoSchedulerOpen(false)} />
 
       <InactivityPrompt tasks={tasks} completionMap={completionMap} onStartFocus={handleStartFocus} />
     </div>
