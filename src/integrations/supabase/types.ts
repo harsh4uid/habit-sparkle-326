@@ -159,6 +159,36 @@ export type Database = {
         }
         Relationships: []
       }
+      mood_logs: {
+        Row: {
+          created_at: string
+          energy: string
+          id: string
+          logged_at: string
+          mood: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          energy?: string
+          id?: string
+          logged_at?: string
+          mood?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          energy?: string
+          id?: string
+          logged_at?: string
+          mood?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -247,6 +277,50 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_blocks: {
+        Row: {
+          color: string
+          created_at: string
+          date: string
+          end_time: string
+          id: string
+          start_time: string
+          task_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          date: string
+          end_time: string
+          id?: string
+          start_time: string
+          task_id?: string | null
+          title?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          date?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          task_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_blocks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
