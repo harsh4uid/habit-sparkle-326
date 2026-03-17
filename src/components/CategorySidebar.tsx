@@ -3,13 +3,13 @@ import { useUIStore } from '@/stores/useHabitStore';
 import { useCategories } from '@/hooks/useCategories';
 import { useTasks } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
-import { LayoutGrid, Plus, Pencil, Trash2, X, Check, StickyNote, TrendingUp } from 'lucide-react';
+import { LayoutGrid, Plus, Pencil, Trash2, X, Check, StickyNote, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CATEGORY_COLORS } from '@/lib/habitUtils';
 
 export function CategorySidebar() {
-  const { selectedCategory, setSelectedCategory, setScratchpadOpen, scratchpadOpen } = useUIStore();
+  const { selectedCategory, setSelectedCategory, setScratchpadOpen, scratchpadOpen, setMobileView } = useUIStore();
   const { categories, addCategory, updateCategory, deleteCategory } = useCategories();
   const { tasks } = useTasks();
 
@@ -35,7 +35,7 @@ export function CategorySidebar() {
   const totalDailyTasks = tasks.filter(t => t.frequency === 'daily').length;
 
   return (
-    <aside className="w-52 shrink-0 border-r border-border bg-card p-4 hidden lg:block overflow-y-auto">
+    <aside className="w-52 shrink-0 border-r border-border bg-card p-4 overflow-y-auto">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categories</p>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setAdding(!adding)}>
@@ -142,6 +142,13 @@ export function CategorySidebar() {
         >
           <StickyNote className="h-4 w-4" />
           <span className="flex-1 text-left">Scratchpad</span>
+        </button>
+        <button
+          onClick={() => setMobileView('tools')}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        >
+          <Gamepad2 className="h-4 w-4" />
+          <span className="flex-1 text-left">Brain Tools</span>
         </button>
       </div>
     </aside>

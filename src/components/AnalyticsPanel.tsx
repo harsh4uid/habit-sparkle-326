@@ -5,6 +5,7 @@ import { WeeklyStats } from './WeeklyStats';
 import { ProgressChart } from './ProgressChart';
 import { AchievementBadges } from './AchievementBadges';
 import { Goals } from './Goals';
+import { HeatmapCalendar } from './HeatmapCalendar';
 import { useGamification, xpForLevel } from '@/hooks/useGamification';
 import { Progress } from '@/components/ui/progress';
 import { Zap } from 'lucide-react';
@@ -41,6 +42,8 @@ export function AnalyticsPanel({ tasks, completionMap }: AnalyticsPanelProps) {
 
       <WeeklyStats tasks={tasks} completionMap={completionMap} />
       <ProgressChart tasks={tasks} completionMap={completionMap} />
+
+      <HeatmapCalendar tasks={tasks} completionMap={completionMap} />
 
       <AchievementBadges />
       <Goals />
