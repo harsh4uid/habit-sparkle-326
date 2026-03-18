@@ -75,6 +75,7 @@ function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<str
   for (let i = 0; i < 7; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
+    if (startD && d < startD) break;
     const dateStr = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
     for (const t of tasks) {
       if (t.frequency !== 'daily') continue;
