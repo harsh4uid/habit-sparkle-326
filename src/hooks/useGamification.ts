@@ -62,7 +62,8 @@ export function useGamification() {
   const awardXP = useMutation({
     mutationFn: async (difficulty: string) => {
       if (!user || !profile) throw new Error('Not ready');
-      const xp = XP_MAP[difficulty] || 25;
+      const baseXP = XP_MAP[difficulty] || 25;
+      const xp = getHardMode(profile) ? baseXP * 2 : baseXP;
       const newTotal = profile.total_xp + xp;
       const newLevel = calculateLevel(newTotal);
       const { error } = await supabase
