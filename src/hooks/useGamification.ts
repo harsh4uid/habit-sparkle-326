@@ -36,11 +36,11 @@ export function useGamification() {
       if (!user) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('total_xp, level')
+        .select('total_xp, level, hard_mode, start_date')
         .eq('id', user.id)
         .single();
       if (error) throw error;
-      return data as { total_xp: number; level: number };
+      return data as { total_xp: number; level: number; hard_mode: boolean; start_date: string };
     },
     enabled: !!user,
   });
