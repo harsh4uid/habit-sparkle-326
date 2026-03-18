@@ -8,6 +8,7 @@ import { ShieldAlert } from 'lucide-react';
 interface Props {
   tasks: Task[];
   completionMap: Record<string, Record<string, string>>;
+  startDate?: string;
 }
 
 export function FailureRecovery({ tasks, completionMap }: Props) {
