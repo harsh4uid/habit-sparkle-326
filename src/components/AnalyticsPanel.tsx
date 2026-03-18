@@ -6,6 +6,8 @@ import { ProgressChart } from './ProgressChart';
 import { AchievementBadges } from './AchievementBadges';
 import { Goals } from './Goals';
 import { HeatmapCalendar } from './HeatmapCalendar';
+import { LifeSimulation } from './LifeSimulation';
+import { DopamineTracker } from './DopamineTracker';
 import { useGamification, xpForLevel } from '@/hooks/useGamification';
 import { Progress } from '@/components/ui/progress';
 import { Zap } from 'lucide-react';
@@ -13,15 +15,16 @@ import { Zap } from 'lucide-react';
 interface AnalyticsPanelProps {
   tasks: Task[];
   completionMap: Record<string, Record<string, string>>;
+  startDate?: string;
 }
 
-export function AnalyticsPanel({ tasks, completionMap }: AnalyticsPanelProps) {
+export function AnalyticsPanel({ tasks, completionMap, startDate }: AnalyticsPanelProps) {
   const { selectedMonth, selectedYear } = useUIStore();
   const overallRate = calculateCompletionRate(tasks, completionMap, selectedMonth, selectedYear, 'daily');
   const { totalXP, level, progress, nextLevelXP } = useGamification();
 
   return (
-    <aside className="w-72 shrink-0 border-l border-border bg-card p-5 space-y-6 hidden xl:block overflow-y-auto">
+    <aside className="w-72 shrink-0 border-l border-border bg-card/80 backdrop-blur-xl p-5 space-y-6 hidden xl:block overflow-y-auto">
       {/* XP & Level */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -43,7 +46,10 @@ export function AnalyticsPanel({ tasks, completionMap }: AnalyticsPanelProps) {
       <WeeklyStats tasks={tasks} completionMap={completionMap} />
       <ProgressChart tasks={tasks} completionMap={completionMap} />
 
-      <HeatmapCalendar tasks={tasks} completionMap={completionMap} />
+      <HeatmapCalendar tasks={tasks} completionMap={completionMap} startDate={startDate} />
+
+      <LifeSimulation />
+      <DopamineTracker />
 
       <AchievementBadges />
       <Goals />
