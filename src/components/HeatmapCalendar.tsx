@@ -8,6 +8,7 @@ import { CalendarDays } from 'lucide-react';
 interface Props {
   tasks: Task[];
   completionMap: Record<string, Record<string, string>>;
+  startDate?: string;
 }
 
 function getHeatmapData(tasks: Task[], completionMap: Record<string, Record<string, string>>) {
