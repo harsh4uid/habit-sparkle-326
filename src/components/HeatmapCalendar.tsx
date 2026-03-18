@@ -11,7 +11,8 @@ interface Props {
   startDate?: string;
 }
 
-function getHeatmapData(tasks: Task[], completionMap: Record<string, Record<string, string>>) {
+function getHeatmapData(tasks: Task[], completionMap: Record<string, Record<string, string>>, startDate?: string) {
+  const startD = startDate ? new Date(startDate + 'T00:00:00') : null;
   const today = new Date();
   const data: { date: string; rate: number; day: Date }[] = [];
 
