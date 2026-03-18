@@ -17,7 +17,8 @@ interface Insight {
   type: 'positive' | 'warning' | 'neutral';
 }
 
-function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<string, string>>, streak: number): Insight[] {
+function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<string, string>>, streak: number, startDate?: string): Insight[] {
+  const startD = startDate ? new Date(startDate + 'T00:00:00') : null;
   const insights: Insight[] = [];
   const today = new Date();
 
