@@ -20,6 +20,10 @@ function getHeatmapData(tasks: Task[], completionMap: Record<string, Record<stri
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const dateStr = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
+    if (startD && d < startD) {
+      data.push({ date: dateStr, rate: -1, day: new Date(d) });
+      continue;
+    }
     const scheduled = tasks.filter(
       (t) => t.frequency === 'daily' && isScheduledForDay(t, d.getFullYear(), d.getMonth(), d.getDate())
     );
