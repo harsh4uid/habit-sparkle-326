@@ -122,4 +122,39 @@
   .pulse-shadow-md {
     box-shadow: 0 2px 8px 0 hsl(220 25% 12% / 0.06), 0 8px 24px 0 hsl(220 25% 12% / 0.08);
   }
+  .glass-card {
+    @apply backdrop-blur-xl border border-border/50;
+    background: hsl(var(--card) / 0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .glass-card:hover {
+    transform: scale(1.005);
+    box-shadow: 0 8px 30px -12px hsl(var(--primary) / 0.15);
+  }
 }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes xp-float {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-24px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 16px 4px hsl(var(--primary) / 0.15); }
+}
+
+@keyframes task-complete {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+.animate-xp-float { animation: xp-float 1s ease-out forwards; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-task-complete { animation: task-complete 0.3s ease-out; }
