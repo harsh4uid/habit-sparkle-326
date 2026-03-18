@@ -8,6 +8,7 @@ interface Props {
   tasks: Task[];
   completionMap: Record<string, Record<string, string>>;
   streak: number;
+  startDate?: string;
 }
 
 interface Insight {
