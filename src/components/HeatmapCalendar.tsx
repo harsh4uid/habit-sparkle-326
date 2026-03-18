@@ -46,8 +46,8 @@ function getColor(rate: number): string {
   return 'bg-destructive/20';
 }
 
-export function HeatmapCalendar({ tasks, completionMap }: Props) {
-  const data = useMemo(() => getHeatmapData(tasks, completionMap), [tasks, completionMap]);
+export function HeatmapCalendar({ tasks, completionMap, startDate }: Props) {
+  const data = useMemo(() => getHeatmapData(tasks, completionMap, startDate), [tasks, completionMap, startDate]);
 
   // Group by week (columns)
   const weeks: typeof data[] = [];

@@ -11,14 +11,16 @@ interface Props {
   startDate?: string;
 }
 
-export function FailureRecovery({ tasks, completionMap }: Props) {
+export function FailureRecovery({ tasks, completionMap, startDate }: Props) {
   const analysis = useMemo(() => {
     const today = new Date();
+    const startD = startDate ? new Date(startDate + 'T00:00:00') : null;
     let consecutiveMissedDays = 0;
 
     for (let i = 1; i <= 7; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
+      if (startD && d < startD) break;
       const dateStr = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
       const scheduled = tasks.filter(
         (t) => t.frequency === 'daily' && isScheduledForDay(t, d.getFullYear(), d.getMonth(), d.getDate())

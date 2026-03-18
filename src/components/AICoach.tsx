@@ -98,8 +98,8 @@ function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<str
   return insights.slice(0, 3);
 }
 
-export function AICoach({ tasks, completionMap, streak }: Props) {
-  const insights = useMemo(() => analyzePatterns(tasks, completionMap, streak), [tasks, completionMap, streak]);
+export function AICoach({ tasks, completionMap, streak, startDate }: Props) {
+  const insights = useMemo(() => analyzePatterns(tasks, completionMap, streak, startDate), [tasks, completionMap, streak, startDate]);
 
   const colorMap = {
     positive: 'text-accent',
