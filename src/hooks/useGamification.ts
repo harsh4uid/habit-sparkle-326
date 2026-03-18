@@ -5,6 +5,10 @@ import { toast } from 'sonner';
 
 const XP_MAP: Record<string, number> = { easy: 10, medium: 25, hard: 50 };
 
+function getHardMode(profile: any): boolean {
+  return profile?.hard_mode === true;
+}
+
 export const ACHIEVEMENTS = [
   { key: '7_DAY_STREAK', label: '7 Day Streak', description: 'Complete all tasks for 7 consecutive days', icon: '🔥' },
   { key: '50_TASKS', label: '50 Tasks Done', description: 'Complete 50 total tasks', icon: '✅' },
