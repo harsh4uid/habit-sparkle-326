@@ -94,6 +94,66 @@ export type Database = {
           },
         ]
       }
+      daily_challenges: {
+        Row: {
+          challenge_text: string
+          completed: boolean
+          created_at: string
+          date: string
+          id: string
+          user_id: string
+          xp_reward: number
+        }
+        Insert: {
+          challenge_text: string
+          completed?: boolean
+          created_at?: string
+          date?: string
+          id?: string
+          user_id: string
+          xp_reward?: number
+        }
+        Update: {
+          challenge_text?: string
+          completed?: boolean
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      dopamine_logs: {
+        Row: {
+          activity: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          logged_at: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          activity: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          logged_at?: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          activity?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          logged_at?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       focus_sessions: {
         Row: {
           completed_at: string | null
@@ -129,6 +189,33 @@ export type Database = {
           },
         ]
       }
+      future_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          shown: boolean
+          trigger_after: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          shown?: boolean
+          trigger_after: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          shown?: boolean
+          trigger_after?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
           created_at: string
@@ -155,6 +242,36 @@ export type Database = {
           target_value?: number
           title?: string
           unit?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      life_stats: {
+        Row: {
+          discipline: number
+          focus: number
+          health: number
+          id: string
+          knowledge: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          discipline?: number
+          focus?: number
+          health?: number
+          id?: string
+          knowledge?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          discipline?: number
+          focus?: number
+          health?: number
+          id?: string
+          knowledge?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -194,8 +311,10 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          hard_mode: boolean
           id: string
           level: number
+          start_date: string
           total_xp: number
           weekly_planning_enabled: boolean
         }
@@ -203,8 +322,10 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          hard_mode?: boolean
           id: string
           level?: number
+          start_date?: string
           total_xp?: number
           weekly_planning_enabled?: boolean
         }
@@ -212,12 +333,49 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          hard_mode?: boolean
           id?: string
           level?: number
+          start_date?: string
           total_xp?: number
           weekly_planning_enabled?: boolean
         }
         Relationships: []
+      }
+      proof_of_work: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          note: string
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          note?: string
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          note?: string
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proof_of_work_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scratchpad_notes: {
         Row: {

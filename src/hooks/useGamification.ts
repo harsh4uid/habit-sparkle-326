@@ -5,6 +5,10 @@ import { toast } from 'sonner';
 
 const XP_MAP: Record<string, number> = { easy: 10, medium: 25, hard: 50 };
 
+function getHardMode(profile: any): boolean {
+  return profile?.hard_mode === true;
+}
+
 export const ACHIEVEMENTS = [
   { key: '7_DAY_STREAK', label: '7 Day Streak', description: 'Complete all tasks for 7 consecutive days', icon: '🔥' },
   { key: '50_TASKS', label: '50 Tasks Done', description: 'Complete 50 total tasks', icon: '✅' },
@@ -32,11 +36,11 @@ export function useGamification() {
       if (!user) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('total_xp, level')
+        .select('total_xp, level, hard_mode, start_date')
         .eq('id', user.id)
         .single();
       if (error) throw error;
-      return data as { total_xp: number; level: number };
+      return data as { total_xp: number; level: number; hard_mode: boolean; start_date: string };
     },
     enabled: !!user,
   });
@@ -58,7 +62,8 @@ export function useGamification() {
   const awardXP = useMutation({
     mutationFn: async (difficulty: string) => {
       if (!user || !profile) throw new Error('Not ready');
-      const xp = XP_MAP[difficulty] || 25;
+      const baseXP = XP_MAP[difficulty] || 25;
+      const xp = getHardMode(profile) ? baseXP * 2 : baseXP;
       const newTotal = profile.total_xp + xp;
       const newLevel = calculateLevel(newTotal);
       const { error } = await supabase

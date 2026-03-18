@@ -2,6 +2,8 @@ import { useGamification, xpForLevel } from '@/hooks/useGamification';
 import { useAuth } from '@/hooks/useAuth';
 import { AchievementBadges } from './AchievementBadges';
 import { Goals } from './Goals';
+import { HardModeToggle } from './HardModeToggle';
+import { LifeSimulation } from './LifeSimulation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -18,7 +20,7 @@ export function MobileProfileView({ darkMode, onToggleDarkMode }: Props) {
 
   return (
     <div className="space-y-4">
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Zap className="h-4 w-4 text-primary" /> Level {level}
@@ -31,6 +33,8 @@ export function MobileProfileView({ darkMode, onToggleDarkMode }: Props) {
         </CardContent>
       </Card>
 
+      <HardModeToggle />
+      <LifeSimulation />
       <AchievementBadges />
       <Goals />
 

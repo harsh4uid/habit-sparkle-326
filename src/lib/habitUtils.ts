@@ -37,6 +37,13 @@ export const months = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+export function clampToStartDate(startDate: string, loopDate: Date): boolean {
+  const start = new Date(startDate + 'T00:00:00');
+  const d = new Date(loopDate);
+  d.setHours(0, 0, 0, 0);
+  return d >= start;
+}
+
 export const CATEGORY_COLORS = [
   '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444',
   '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',

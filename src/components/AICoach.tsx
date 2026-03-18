@@ -8,6 +8,7 @@ interface Props {
   tasks: Task[];
   completionMap: Record<string, Record<string, string>>;
   streak: number;
+  startDate?: string;
 }
 
 interface Insight {
@@ -16,7 +17,8 @@ interface Insight {
   type: 'positive' | 'warning' | 'neutral';
 }
 
-function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<string, string>>, streak: number): Insight[] {
+function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<string, string>>, streak: number, startDate?: string): Insight[] {
+  const startD = startDate ? new Date(startDate + 'T00:00:00') : null;
   const insights: Insight[] = [];
   const today = new Date();
 
@@ -27,6 +29,7 @@ function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<str
   for (let i = 0; i < 14; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
+    if (startD && d < startD) break;
     const dateStr = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
     const scheduled = tasks.filter(
       (t) => t.frequency === 'daily' && isScheduledForDay(t, d.getFullYear(), d.getMonth(), d.getDate())
@@ -72,6 +75,7 @@ function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<str
   for (let i = 0; i < 7; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
+    if (startD && d < startD) break;
     const dateStr = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
     for (const t of tasks) {
       if (t.frequency !== 'daily') continue;
@@ -94,8 +98,8 @@ function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<str
   return insights.slice(0, 3);
 }
 
-export function AICoach({ tasks, completionMap, streak }: Props) {
-  const insights = useMemo(() => analyzePatterns(tasks, completionMap, streak), [tasks, completionMap, streak]);
+export function AICoach({ tasks, completionMap, streak, startDate }: Props) {
+  const insights = useMemo(() => analyzePatterns(tasks, completionMap, streak, startDate), [tasks, completionMap, streak, startDate]);
 
   const colorMap = {
     positive: 'text-accent',

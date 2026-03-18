@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Header } from './Header';
 import { CategorySidebar } from './CategorySidebar';
 import { HabitGrid } from './HabitGrid';
@@ -23,23 +23,34 @@ import { BrainTools } from './BrainTools';
 import { TimeBlockCalendar } from './TimeBlockCalendar';
 import { MobileProfileView } from './MobileProfileView';
 import { showMotivationalToast } from './MotivationalToast';
+import { FutureSelfMessages } from './FutureSelfMessages';
+import { LifeSimulation } from './LifeSimulation';
+import { DopamineTracker } from './DopamineTracker';
+import { TimeTravelSimulation } from './TimeTravelSimulation';
+import { RandomChallenge } from './RandomChallenge';
+import { BurnoutDetector } from './BurnoutDetector';
+import { ProofOfWork } from './ProofOfWork';
 import { useUIStore, type Task } from '@/stores/useHabitStore';
 import { useTasks } from '@/hooks/useTasks';
 import { useCompletions } from '@/hooks/useCompletions';
 import { useAuth } from '@/hooks/useAuth';
 import { useGamification } from '@/hooks/useGamification';
+import { useProfile } from '@/hooks/useProfile';
+import { useLifeStats } from '@/hooks/useLifeStats';
 import { calculateCompletionRate, formatDate, isScheduledForDay } from '@/lib/habitUtils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-function calculateStreak(tasks: Task[], completionMap: Record<string, Record<string, string>>): number {
+function calculateStreak(tasks: Task[], completionMap: Record<string, Record<string, string>>, startDate?: string): number {
   let streak = 0;
   const today = new Date();
+  const startD = startDate ? new Date(startDate + 'T00:00:00') : null;
   for (let i = 0; i < 365; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
+    if (startD && d < startD) break;
     const dateStr = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
     const scheduled = tasks.filter(
       (t) => t.frequency === 'daily' && isScheduledForDay(t, d.getFullYear(), d.getMonth(), d.getDate())
@@ -55,15 +66,19 @@ function calculateStreak(tasks: Task[], completionMap: Record<string, Record<str
 export function Dashboard() {
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('ws-dark-mode') === 'true';
+      const saved = localStorage.getItem('ws-dark-mode');
+      return saved === null ? true : saved === 'true'; // dark mode default
     }
-    return false;
+    return true;
   });
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [proofTask, setProofTask] = useState<Task | null>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const { signOut } = useAuth();
+  const { startDate, hardMode } = useProfile();
+  const { updateStats } = useLifeStats();
   const {
     selectedMonth, selectedYear, weeklyPlanningEnabled, setWeeklyPlanningEnabled,
     screenshotMode, focusModeOpen, setFocusModeOpen, scratchpadOpen,
@@ -74,7 +89,7 @@ export function Dashboard() {
   const { awardXP, unlockAchievement } = useGamification();
 
   const overallRate = calculateCompletionRate(tasks, completionMap, selectedMonth, selectedYear, 'daily');
-  const streak = useMemo(() => calculateStreak(tasks, completionMap), [tasks, completionMap]);
+  const streak = useMemo(() => calculateStreak(tasks, completionMap, startDate), [tasks, completionMap, startDate]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -104,9 +119,16 @@ export function Dashboard() {
       onSuccess: () => {
         const task = tasks.find((t) => t.id === taskId);
         if (task && !completionMap[date]?.[taskId]) {
+          // Award XP (2x in hard mode handled in useGamification)
           awardXP.mutate(task.difficulty || 'medium');
           unlockAchievement.mutate('FIRST_TASK');
           showMotivationalToast();
+          // Update life stats
+          updateStats.mutate({ discipline: 1, focus: 1, knowledge: 1 });
+          // Show proof of work for hard tasks
+          if (task.difficulty === 'hard') {
+            setProofTask(task);
+          }
         }
       },
     });
@@ -137,17 +159,20 @@ export function Dashboard() {
       case 'dashboard':
         return (
           <>
+            <FutureSelfMessages />
             <ProductivityDashboard tasks={tasks} completionMap={completionMap} streak={streak} />
+            <RandomChallenge />
             <MoodTracker />
-            <AICoach tasks={tasks} completionMap={completionMap} streak={streak} />
+            <AICoach tasks={tasks} completionMap={completionMap} streak={streak} startDate={startDate} />
             <WeeklyChallenges tasks={tasks} completionMap={completionMap} />
-            <FailureRecovery tasks={tasks} completionMap={completionMap} />
+            <BurnoutDetector tasks={tasks} completionMap={completionMap} />
+            <FailureRecovery tasks={tasks} completionMap={completionMap} startDate={startDate} />
           </>
         );
       case 'tasks':
         return (
           <>
-            <div className="rounded-xl border border-border bg-card p-4 pulse-shadow">
+            <div className="rounded-xl border border-border bg-card p-4 glass-card">
               <h2 className="text-sm font-semibold text-foreground mb-3">Daily Tasks</h2>
               <HabitGrid
                 tasks={tasks}
@@ -159,7 +184,7 @@ export function Dashboard() {
             </div>
             <TimeBlockCalendar tasks={tasks} />
             {weeklyPlanningEnabled && (
-              <div className="rounded-xl border border-border bg-card p-4 pulse-shadow">
+              <div className="rounded-xl border border-border bg-card p-4 glass-card">
                 <WeeklyHabits tasks={tasks} completionMap={completionMap} onToggle={handleToggle} />
               </div>
             )}
@@ -189,7 +214,7 @@ export function Dashboard() {
       </div>
 
       {/* Mobile header */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card">
+      <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-xs">WS</span>
@@ -202,7 +227,7 @@ export function Dashboard() {
         {/* Sidebar - desktop only */}
         {!screenshotMode && <div className="hidden lg:block"><CategorySidebar /></div>}
 
-        {/* Main content - mobile */}
+        {/* Main content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 pb-24 md:pb-6">
           {/* Mobile view */}
           <div className="md:hidden">
@@ -215,19 +240,27 @@ export function Dashboard() {
               <Scratchpad />
             ) : (
               <>
+                <FutureSelfMessages />
+
                 <ProductivityDashboard tasks={tasks} completionMap={completionMap} streak={streak} />
 
-                {/* AI Coach + Mood row */}
+                {/* AI Coach + Mood + Challenge row */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div className="lg:col-span-2">
-                    <AICoach tasks={tasks} completionMap={completionMap} streak={streak} />
+                    <AICoach tasks={tasks} completionMap={completionMap} streak={streak} startDate={startDate} />
                   </div>
                   <MoodTracker />
                 </div>
 
-                <FailureRecovery tasks={tasks} completionMap={completionMap} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <RandomChallenge />
+                  <TimeTravelSimulation tasks={tasks} completionMap={completionMap} />
+                </div>
 
-                <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
+                <BurnoutDetector tasks={tasks} completionMap={completionMap} />
+                <FailureRecovery tasks={tasks} completionMap={completionMap} startDate={startDate} />
+
+                <div className="rounded-xl border border-border bg-card p-5 glass-card">
                   <h2 className="text-sm font-semibold text-foreground mb-4">Daily Tasks</h2>
                   <HabitGrid
                     tasks={tasks}
@@ -245,7 +278,7 @@ export function Dashboard() {
 
                 {/* Mobile/Tablet Analytics */}
                 <div className="xl:hidden space-y-6">
-                  <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
+                  <div className="rounded-xl border border-border bg-card p-5 glass-card">
                     <h3 className="text-sm font-semibold text-foreground mb-4">Analytics</h3>
                     <div className="flex flex-col sm:flex-row items-center gap-8">
                       <CompletionRing percentage={overallRate} size={120} strokeWidth={8} label="Overall" />
@@ -254,10 +287,10 @@ export function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
+                  <div className="rounded-xl border border-border bg-card p-5 glass-card">
                     <ProgressChart tasks={tasks} completionMap={completionMap} />
                   </div>
-                  <HeatmapCalendar tasks={tasks} completionMap={completionMap} />
+                  <HeatmapCalendar tasks={tasks} completionMap={completionMap} startDate={startDate} />
                 </div>
 
                 {!screenshotMode && (
@@ -274,7 +307,7 @@ export function Dashboard() {
                 )}
 
                 {weeklyPlanningEnabled && (
-                  <div className="rounded-xl border border-border bg-card p-5 pulse-shadow">
+                  <div className="rounded-xl border border-border bg-card p-5 glass-card">
                     <WeeklyHabits tasks={tasks} completionMap={completionMap} onToggle={handleToggle} />
                   </div>
                 )}
@@ -284,7 +317,7 @@ export function Dashboard() {
         </main>
 
         {/* Analytics panel - desktop only */}
-        {!screenshotMode && <AnalyticsPanel tasks={tasks} completionMap={completionMap} />}
+        {!screenshotMode && <AnalyticsPanel tasks={tasks} completionMap={completionMap} startDate={startDate} />}
       </div>
 
       {/* Mobile bottom nav */}
@@ -297,6 +330,15 @@ export function Dashboard() {
       <AutoScheduler open={autoSchedulerOpen} onClose={() => setAutoSchedulerOpen(false)} />
 
       <InactivityPrompt tasks={tasks} completionMap={completionMap} onStartFocus={handleStartFocus} />
+
+      {proofTask && (
+        <ProofOfWork
+          open={!!proofTask}
+          onClose={() => setProofTask(null)}
+          taskId={proofTask.id}
+          taskName={proofTask.name}
+        />
+      )}
     </div>
   );
 }

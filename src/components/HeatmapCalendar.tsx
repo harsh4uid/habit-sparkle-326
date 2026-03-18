@@ -8,9 +8,11 @@ import { CalendarDays } from 'lucide-react';
 interface Props {
   tasks: Task[];
   completionMap: Record<string, Record<string, string>>;
+  startDate?: string;
 }
 
-function getHeatmapData(tasks: Task[], completionMap: Record<string, Record<string, string>>) {
+function getHeatmapData(tasks: Task[], completionMap: Record<string, Record<string, string>>, startDate?: string) {
+  const startD = startDate ? new Date(startDate + 'T00:00:00') : null;
   const today = new Date();
   const data: { date: string; rate: number; day: Date }[] = [];
 
@@ -18,6 +20,10 @@ function getHeatmapData(tasks: Task[], completionMap: Record<string, Record<stri
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const dateStr = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
+    if (startD && d < startD) {
+      data.push({ date: dateStr, rate: -1, day: new Date(d) });
+      continue;
+    }
     const scheduled = tasks.filter(
       (t) => t.frequency === 'daily' && isScheduledForDay(t, d.getFullYear(), d.getMonth(), d.getDate())
     );
@@ -40,8 +46,8 @@ function getColor(rate: number): string {
   return 'bg-destructive/20';
 }
 
-export function HeatmapCalendar({ tasks, completionMap }: Props) {
-  const data = useMemo(() => getHeatmapData(tasks, completionMap), [tasks, completionMap]);
+export function HeatmapCalendar({ tasks, completionMap, startDate }: Props) {
+  const data = useMemo(() => getHeatmapData(tasks, completionMap, startDate), [tasks, completionMap, startDate]);
 
   // Group by week (columns)
   const weeks: typeof data[] = [];
