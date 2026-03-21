@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 20% 98%;
+    --foreground: 220 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 12%;
+
+    --primary: 220 70% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 94%;
+    --secondary-foreground: 220 25% 12%;
+
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 145 35% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 220 70% 50%;
+
+    --radius: 0.75rem;
+
+    --success: 145 35% 48%;
+    --success-foreground: 0 0% 100%;
+
+    --chart-1: 220 70% 50%;
+    --chart-2: 145 35% 48%;
+    --chart-3: 280 60% 55%;
+    --chart-4: 35 90% 55%;
+    --chart-5: 350 65% 55%;
+
+    --sidebar-background: 220 15% 96%;
+    --sidebar-foreground: 220 15% 30%;
+    --sidebar-primary: 220 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 92%;
+    --sidebar-accent-foreground: 220 25% 12%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 220 70% 50%;
+  }
+
+  .dark {
+    --background: 224 25% 8%;
+    --foreground: 220 15% 90%;
+
+    --card: 224 20% 12%;
+    --card-foreground: 220 15% 90%;
+
+    --popover: 224 20% 12%;
+    --popover-foreground: 220 15% 90%;
+
+    --primary: 220 70% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 224 15% 18%;
+    --secondary-foreground: 220 15% 90%;
+
+    --muted: 224 15% 18%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 145 35% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 224 15% 18%;
+    --input: 224 15% 18%;
+    --ring: 220 70% 55%;
+
+    --success: 145 35% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --chart-1: 220 70% 55%;
+    --chart-2: 145 35% 42%;
+    --chart-3: 280 60% 60%;
+    --chart-4: 35 90% 60%;
+    --chart-5: 350 65% 60%;
+
+    --sidebar-background: 224 20% 10%;
+    --sidebar-foreground: 220 15% 80%;
+    --sidebar-primary: 220 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 15% 16%;
+    --sidebar-accent-foreground: 220 15% 90%;
+    --sidebar-border: 224 15% 18%;
+    --sidebar-ring: 220 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Instrument Sans', sans-serif;
+  }
+}
+
+@layer utilities {
+  .pulse-shadow {
+    box-shadow: 0 1px 3px 0 hsl(220 25% 12% / 0.04), 0 4px 12px 0 hsl(220 25% 12% / 0.06);
+  }
+  .pulse-shadow-md {
+    box-shadow: 0 2px 8px 0 hsl(220 25% 12% / 0.06), 0 8px 24px 0 hsl(220 25% 12% / 0.08);
+  }
+  .glass-card {
+    @apply backdrop-blur-xl border border-border/50;
+    background: hsl(var(--card) / 0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .glass-card:hover {
+    transform: scale(1.005);
+    box-shadow: 0 8px 30px -12px hsl(var(--primary) / 0.15);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes xp-float {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-24px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 16px 4px hsl(var(--primary) / 0.15); }
+}
+
+@keyframes task-complete {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+.animate-xp-float { animation: xp-float 1s ease-out forwards; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-task-complete { animation: task-complete 0.3s ease-out; }
