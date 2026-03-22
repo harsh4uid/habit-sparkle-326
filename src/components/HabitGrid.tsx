@@ -73,9 +73,12 @@ export function HabitGrid({ tasks, completionMap, onToggle, onEditTask, onDelete
               transition={{ delay: index * 0.03, duration: 0.2 }}
               className="flex items-center gap-0 group"
             >
-              <div className="w-48 shrink-0 flex items-center gap-2 pr-3 py-1.5">
-                <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                <span className="text-sm font-medium text-foreground truncate">{task.name}</span>
+              <div className="w-48 shrink-0 flex flex-col gap-1 pr-3 py-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                  <span className="text-sm font-medium text-foreground truncate">{task.name}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">{useUIStore.getState().getTaskTime(task.id) || '04:00'}</span>
               </div>
 
               {days.map((day) => {

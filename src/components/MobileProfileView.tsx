@@ -1,5 +1,6 @@
 import { useGamification, xpForLevel } from '@/hooks/useGamification';
 import { useAuth } from '@/hooks/useAuth';
+import { useUIStore } from '@/stores/useHabitStore';
 import { AchievementBadges } from './AchievementBadges';
 import { Goals } from './Goals';
 import { HardModeToggle } from './HardModeToggle';
@@ -17,6 +18,7 @@ interface Props {
 export function MobileProfileView({ darkMode, onToggleDarkMode }: Props) {
   const { totalXP, level, progress, nextLevelXP } = useGamification();
   const { signOut } = useAuth();
+  const { dayEndsAt, setDayEndsAt } = useUIStore();
 
   return (
     <div className="space-y-4">
@@ -35,6 +37,17 @@ export function MobileProfileView({ darkMode, onToggleDarkMode }: Props) {
 
       <HardModeToggle />
       <LifeSimulation />
+
+      <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+        <p className="text-sm font-medium">Day Ends At</p>
+        <input
+          type="time"
+          value={dayEndsAt}
+          onChange={(e) => setDayEndsAt(e.target.value)}
+          className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+        />
+      </div>
+
       <AchievementBadges />
       <Goals />
 

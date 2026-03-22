@@ -39,7 +39,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useGamification } from '@/hooks/useGamification';
 import { useProfile } from '@/hooks/useProfile';
 import { useLifeStats } from '@/hooks/useLifeStats';
-import { calculateCompletionRate, formatDate, isScheduledForDay, getCurrentLogicalDate } from '@/lib/habitUtils';
+import { calculateCompletionRate, formatDate, isScheduledForDay, getCurrentLogicalDate, getCurrentTimeString, getTodayString, getTaskStatus, isLateNight } from '@/lib/habitUtils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import html2canvas from 'html2canvas';
@@ -84,11 +84,23 @@ export function Dashboard() {
   const {
     selectedMonth, selectedYear, weeklyPlanningEnabled, setWeeklyPlanningEnabled,
     screenshotMode, focusModeOpen, setFocusModeOpen, scratchpadOpen,
-    mobileView, autoSchedulerOpen, setAutoSchedulerOpen
+    mobileView, autoSchedulerOpen, setAutoSchedulerOpen,
+    dayEndsAt
   } = useUIStore();
   const { tasks, addTask, updateTask, deleteTask } = useTasks();
   const { completionMap, toggleCompletion } = useCompletions(selectedMonth, selectedYear);
   const { awardXP, unlockAchievement } = useGamification();
+
+  const logicalToday = getCurrentLogicalDate();
+  const todayStr = getTodayString();
+  const currentTime = getCurrentTimeString();
+  const lateNightMode = isLateNight();
+  const carriedToday = useUIStore.getState().getCarriedTasks(todayStr);
+
+  const todayTasks = tasks
+    .filter((t) => t.frequency === 'daily' && (isScheduledForDay(t, logicalToday) || carriedToday.includes(t.id)))
+    .map((t) => ({ ...t, time: useUIStore.getState().getTaskTime(t.id) }))
+    .sort((a, b) => a.time.localeCompare(b.time));
 
   const overallRate = calculateCompletionRate(tasks, completionMap, selectedMonth, selectedYear, 'daily');
   const streak = useMemo(() => calculateStreak(tasks, completionMap, startDate), [tasks, completionMap, startDate]);
@@ -251,7 +263,37 @@ export function Dashboard() {
             </motion.div>
           )}
 
-          {/* Mobile view */}
+          <div className="rounded-xl border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div>
+            <p className="text-xs sm:text-sm font-medium">Today (logical): {logicalToday.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+            <p className="text-[11px] text-muted-foreground">Day ends at {dayEndsAt} • Current time: {currentTime}</p>
+          </div>
+          <div className="text-xs sm:text-sm font-medium">
+            {lateNightMode ? '🌙 Late Night Mode — Stay focused!' : '☀️ Regular Hours'}
+          </div>
+        </div>
+
+        {todayTasks.length > 0 && (
+          <div className="rounded-xl border border-border bg-card p-4 glass-card">
+            <h3 className="text-sm font-semibold text-foreground mb-2">Today Timeline</h3>
+            <div className="space-y-2">
+              {todayTasks.map((task) => {
+                const status = getTaskStatus(task, todayStr, completionMap, carriedToday);
+                return (
+                  <div key={task.id} className="flex items-center justify-between gap-2 p-2 rounded-md border border-border/50 bg-muted/10">
+                    <div>
+                      <p className="text-sm font-medium">{task.time} — {task.name}</p>
+                      <p className="text-xs text-muted-foreground">{task.frequency === 'daily' ? 'Daily' : 'Weekly'}{carriedToday.includes(task.id) ? ' • Carried' : ''}</p>
+                    </div>
+                    <span className={"text-xs font-semibold " + (status === 'completed' ? 'text-emerald-500' : status === 'missed' ? 'text-destructive' : status === 'carried' ? 'text-sky-500' : 'text-amber-500')}>{status.toUpperCase()}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile view */}
           <div className="md:hidden">
             {scratchpadOpen ? <Scratchpad /> : renderMobileContent()}
           </div>

@@ -9,6 +9,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    show: true, // force show
   });
 
   const filePath = path.join(__dirname, 'dist/index.html');
@@ -17,6 +18,11 @@ function createWindow() {
   win.loadFile(filePath);
 
   win.webContents.openDevTools(); // IMPORTANT
+
+  win.on('ready-to-show', () => {
+    console.log("Window ready");
+    win.show();
+  });
 }
 
 app.whenReady().then(() => {

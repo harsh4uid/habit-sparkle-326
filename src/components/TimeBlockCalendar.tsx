@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTimeBlocks } from '@/hooks/useTimeBlocks';
 import type { Task } from '@/stores/useHabitStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getCurrentLogicalDateString } from '@/lib/habitUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -16,7 +17,7 @@ interface Props {
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 6am to 11pm
 
 export function TimeBlockCalendar({ tasks }: Props) {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getCurrentLogicalDateString();
   const { blocks, addBlock, deleteBlock } = useTimeBlocks(todayStr);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newBlock, setNewBlock] = useState({ title: '', start: '09:00', end: '10:00', color: '#3b82f6', taskId: '' });
