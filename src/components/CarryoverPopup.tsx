@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useUIStore, type Task } from '@/stores/useHabitStore';
 import { getCurrentLogicalDate, formatDate, isScheduledForDay } from '@/lib/habitUtils';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   tasks: Task[];
@@ -15,10 +16,11 @@ export function CarryoverPopup({ tasks, completionMap }: Props) {
   const [candidates, setCandidates] = useState<Task[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const { setCarriedTasks, getCarriedTasks } = useUIStore();
+  const { user } = useAuth();
 
   useEffect(() => {
     // Only run when we have loaded tasks and completions
-    if (tasks.length === 0) return;
+    if (tasks.length === 0 || !user) return;
 
     const today = getCurrentLogicalDate();
     const todayStr = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
@@ -26,6 +28,18 @@ export function CarryoverPopup({ tasks, completionMap }: Props) {
     // Check if prompted today
     const lastPrompt = localStorage.getItem('ws-last-carryover-prompt');
     if (lastPrompt === todayStr) return;
+
+    // Skip carryover for new users (created today or very recently)
+    const userCreatedAt = user.user_metadata?.created_at || user.created_at;
+    if (userCreatedAt) {
+      const createdDate = new Date(userCreatedAt);
+      const daysSinceCreation = Math.floor((today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+      // Skip carryover for first 2 days after signup
+      if (daysSinceCreation < 2) {
+        localStorage.setItem('ws-last-carryover-prompt', todayStr);
+        return;
+      }
+    }
 
     // Calculate yesterday
     const yesterday = new Date(today);
@@ -58,7 +72,7 @@ export function CarryoverPopup({ tasks, completionMap }: Props) {
     } else {
       localStorage.setItem('ws-last-carryover-prompt', todayStr);
     }
-  }, [tasks, completionMap, getCarriedTasks]);
+  }, [tasks, completionMap, getCarriedTasks, user]);
 
   const toggleSelect = (taskId: string) => {
     setSelected(prev => {
