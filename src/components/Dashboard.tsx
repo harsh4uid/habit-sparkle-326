@@ -82,7 +82,7 @@ export function Dashboard() {
   const { updateStats } = useLifeStats();
   const {
     selectedMonth, selectedYear, weeklyPlanningEnabled, setWeeklyPlanningEnabled,
-    screenshotMode, focusModeOpen, setFocusModeOpen, scratchpadOpen,
+    screenshotMode, focusModeOpen, setFocusModeOpen, scratchpadOpen, setScratchpadOpen,
     mobileView, autoSchedulerOpen, setAutoSchedulerOpen,
     dayEndsAt, brainToolsOpen
   } = useUIStore();
@@ -235,9 +235,30 @@ export function Dashboard() {
       {/* Mobile header */}
       <header className="md:hidden flex items-center justify-between px-3 py-2 border-b border-border bg-card/80 backdrop-blur-xl">
         <div className="flex items-center gap-2 min-w-0">
-          <img src="/tasktitan-logo.png" alt="TaskTitan" className="h-5 w-5 shrink-0" />
-          <h1 className="text-base font-bold text-foreground truncate">TaskTitan</h1>
+          {scratchpadOpen && (
+            <button
+              onClick={() => setScratchpadOpen(false)}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← Back
+            </button>
+          )}
+          {!scratchpadOpen && (
+            <>
+              <img src="/tasktitan-logo.png" alt="TaskTitan" className="h-5 w-5 shrink-0" />
+              <h1 className="text-base font-bold text-foreground truncate">TaskTitan</h1>
+            </>
+          )}
         </div>
+        {!scratchpadOpen && (
+          <button
+            onClick={() => setScratchpadOpen(true)}
+            className="text-xs px-2 py-1 rounded-md bg-muted hover:bg-muted/80 text-foreground transition-colors"
+            title="Open scratchpad"
+          >
+            Notepad
+          </button>
+        )}
       </header>
 
       <div className="flex flex-1 overflow-hidden" ref={dashboardRef}>

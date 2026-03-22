@@ -105,6 +105,10 @@ export function TimeBlockCalendar({ tasks }: Props) {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(107, 114, 128, 0.5) transparent'
+          }}
         >
           {/* Hour lines */}
           {HOURS.map((h) => (

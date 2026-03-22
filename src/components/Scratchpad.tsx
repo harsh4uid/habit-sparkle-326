@@ -6,7 +6,7 @@ export function Scratchpad() {
   const { content, updateContent, isLoading, isSaving } = useScratchpad();
 
   return (
-    <Card className="h-screen md:h-[calc(100vh-200px)] flex flex-col">
+    <Card className="h-[calc(100vh-140px)] md:h-[calc(100vh-200px)] flex flex-col">
       <CardHeader className="pb-2 shrink-0">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <StickyNote className="h-4 w-4" />
