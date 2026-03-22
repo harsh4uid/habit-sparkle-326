@@ -61,5 +61,22 @@ export function useTimeBlocks(date: string) {
     onError: (err: any) => toast.error(err.message),
   });
 
-  return { blocks, addBlock, deleteBlock };
+  const updateBlock = useMutation({
+    mutationFn: async (block: { id: string; start_time?: string; end_time?: string; title?: string; color?: string }) => {
+      const { error } = await supabase
+        .from('time_blocks')
+        .update({
+          ...(block.start_time && { start_time: block.start_time }),
+          ...(block.end_time && { end_time: block.end_time }),
+          ...(block.title && { title: block.title }),
+          ...(block.color && { color: block.color }),
+        })
+        .eq('id', block.id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['time_blocks'] }),
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  return { blocks, addBlock, deleteBlock, updateBlock };
 }

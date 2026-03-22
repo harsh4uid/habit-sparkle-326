@@ -16,10 +16,18 @@ interface Props {
 
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 6am to 11pm
 
+interface DragState {
+  blockId: string;
+  startY: number;
+  startTime: string;
+  isDraggingStart: boolean;
+}
+
 export function TimeBlockCalendar({ tasks }: Props) {
   const todayStr = getCurrentLogicalDateString();
-  const { blocks, addBlock, deleteBlock } = useTimeBlocks(todayStr);
+  const { blocks, addBlock, deleteBlock, updateBlock } = useTimeBlocks(todayStr);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dragState, setDragState] = useState<DragState | null>(null);
   const [newBlock, setNewBlock] = useState({ title: '', start: '09:00', end: '10:00', color: '#3b82f6', taskId: '' });
 
   const handleAdd = () => {
@@ -44,6 +52,41 @@ export function TimeBlockCalendar({ tasks }: Props) {
     return { top: `${(startMin / (18 * 60)) * 100}%`, height: `${((endMin - startMin) / (18 * 60)) * 100}%` };
   };
 
+  const timeFromY = (y: number, containerHeight: number) => {
+    const percent = Math.max(0, Math.min(1, y / containerHeight));
+    const minutes = Math.round(percent * 18 * 60);
+    const hours = Math.floor(minutes / 60) + 6;
+    const mins = minutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+  };
+
+  const handleMouseDown = (blockId: string, startTime: string, e: React.MouseEvent, isDraggingStart: boolean) => {
+    e.preventDefault();
+    setDragState({ blockId, startY: e.clientY, startTime, isDraggingStart });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!dragState) return;
+    
+    const container = e.currentTarget as HTMLDivElement;
+    const rect = container.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const newTime = timeFromY(y, rect.height);
+
+    const block = blocks.find(b => b.id === dragState.blockId);
+    if (!block) return;
+
+    if (dragState.isDraggingStart) {
+      updateBlock?.mutate({ id: block.id, start_time: newTime, end_time: block.end_time });
+    } else {
+      updateBlock?.mutate({ id: block.id, start_time: block.start_time, end_time: newTime });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setDragState(null);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -57,7 +100,12 @@ export function TimeBlockCalendar({ tasks }: Props) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="relative h-[400px] overflow-y-auto">
+        <div 
+          className="relative h-[400px] overflow-y-auto bg-muted/20 rounded-md"
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
           {/* Hour lines */}
           {HOURS.map((h) => (
             <div
@@ -65,7 +113,7 @@ export function TimeBlockCalendar({ tasks }: Props) {
               className="absolute left-0 right-0 border-t border-border/50"
               style={{ top: `${((h - 6) / 18) * 100}%` }}
             >
-              <span className="text-[9px] text-muted-foreground absolute -top-2 left-0">
+              <span className="text-[9px] text-muted-foreground absolute -top-2 left-0 bg-background px-1">
                 {h === 0 ? '12am' : h <= 12 ? `${h}am` : `${h - 12}pm`}
               </span>
             </div>
@@ -77,14 +125,31 @@ export function TimeBlockCalendar({ tasks }: Props) {
             return (
               <div
                 key={block.id}
-                className="absolute left-10 right-2 rounded-md px-2 py-1 text-xs text-white group cursor-pointer"
-                style={{ top: pos.top, height: pos.height, backgroundColor: block.color, minHeight: '20px' }}
+                className="absolute left-10 right-2 rounded-md px-2 py-1 text-xs text-white group cursor-move transition-opacity"
+                style={{ top: pos.top, height: pos.height, backgroundColor: block.color, minHeight: '30px', opacity: dragState?.blockId === block.id ? 0.7 : 1 }}
               >
-                <span className="font-medium truncate block">{block.title}</span>
+                {/* Drag handle - top */}
+                <div
+                  onMouseDown={(e) => handleMouseDown(block.id, block.start_time, e, true)}
+                  className="absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize hover:bg-white/30 rounded-t-md"
+                  title="Drag to change start time"
+                />
+                
+                <span className="font-medium truncate block mt-1">{block.title}</span>
                 <span className="text-[9px] opacity-75">{block.start_time} – {block.end_time}</span>
+                
+                {/* Drag handle - bottom */}
+                <div
+                  onMouseDown={(e) => handleMouseDown(block.id, block.start_time, e, false)}
+                  className="absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize hover:bg-white/30 rounded-b-md"
+                  title="Drag to change end time"
+                />
+                
                 <button
                   onClick={() => deleteBlock.mutate(block.id)}
                   className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Delete time block"
+                  aria-label="Delete time block"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>

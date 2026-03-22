@@ -42,6 +42,7 @@ interface UIState {
   screenshotMode: boolean;
   focusModeOpen: boolean;
   scratchpadOpen: boolean;
+  brainToolsOpen: boolean;
   mobileView: MobileView;
   autoSchedulerOpen: boolean;
   dayEndsAt: string;
@@ -52,6 +53,7 @@ interface UIState {
   setScreenshotMode: (enabled: boolean) => void;
   setFocusModeOpen: (open: boolean) => void;
   setScratchpadOpen: (open: boolean) => void;
+  setBrainToolsOpen: (open: boolean) => void;
   setMobileView: (view: MobileView) => void;
   setAutoSchedulerOpen: (open: boolean) => void;
   setDayEndsAt: (time: string) => void;
@@ -80,6 +82,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   screenshotMode: false,
   focusModeOpen: false,
   scratchpadOpen: false,
+  brainToolsOpen: false,
   mobileView: 'dashboard',
   autoSchedulerOpen: false,
   dayEndsAt: getInitialDayEndsAt(),
@@ -90,6 +93,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   setScreenshotMode: (enabled) => set({ screenshotMode: enabled }),
   setFocusModeOpen: (open) => set({ focusModeOpen: open }),
   setScratchpadOpen: (open) => set({ scratchpadOpen: open }),
+  setBrainToolsOpen: (open) => set({ brainToolsOpen: open }),
   setMobileView: (view) => set({ mobileView: view }),
   setAutoSchedulerOpen: (open) => set({ autoSchedulerOpen: open }),
   setDayEndsAt: (time: string) => {

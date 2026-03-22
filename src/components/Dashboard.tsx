@@ -85,7 +85,7 @@ export function Dashboard() {
     selectedMonth, selectedYear, weeklyPlanningEnabled, setWeeklyPlanningEnabled,
     screenshotMode, focusModeOpen, setFocusModeOpen, scratchpadOpen,
     mobileView, autoSchedulerOpen, setAutoSchedulerOpen,
-    dayEndsAt
+    dayEndsAt, brainToolsOpen
   } = useUIStore();
   const { tasks, addTask, updateTask, deleteTask } = useTasks();
   const { completionMap, toggleCompletion } = useCompletions(selectedMonth, selectedYear);
@@ -234,12 +234,10 @@ export function Dashboard() {
       </div>
 
       {/* Mobile header */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur-xl">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-xs">WS</span>
-          </div>
-          <h1 className="text-lg font-bold text-foreground">Work Scheduler</h1>
+      <header className="md:hidden flex items-center justify-between px-3 py-2 border-b border-border bg-card/80 backdrop-blur-xl">
+        <div className="flex items-center gap-2 min-w-0">
+          <img src="/tasktitan-logo.png" alt="TaskTitan" className="h-5 w-5 shrink-0" />
+          <h1 className="text-base font-bold text-foreground truncate">TaskTitan</h1>
         </div>
       </header>
 
@@ -248,7 +246,7 @@ export function Dashboard() {
         {!screenshotMode && <div className="hidden lg:block"><CategorySidebar /></div>}
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 pb-24 md:pb-6">
+        <main className="flex-1 overflow-y-auto p-2 sm:p-3 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 pb-24 md:pb-6">
           {new Date().getDate() !== getCurrentLogicalDate().getDate() && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }} 
@@ -263,29 +261,31 @@ export function Dashboard() {
             </motion.div>
           )}
 
-          <div className="rounded-xl border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <div>
-            <p className="text-xs sm:text-sm font-medium">Today (logical): {logicalToday.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</p>
-            <p className="text-[11px] text-muted-foreground">Day ends at {dayEndsAt} • Current time: {currentTime}</p>
-          </div>
-          <div className="text-xs sm:text-sm font-medium">
-            {lateNightMode ? '🌙 Late Night Mode — Stay focused!' : '☀️ Regular Hours'}
+          <div className="rounded-lg border border-border bg-card p-2 sm:p-3 flex flex-col gap-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs sm:text-sm font-medium line-clamp-1">Today: {logicalToday.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">Ends: {dayEndsAt} • {currentTime}</p>
+            </div>
+            <div className="text-xs sm:text-sm font-medium whitespace-nowrap">
+              {lateNightMode ? '🌙' : '☀️'}
+            </div>
           </div>
         </div>
 
         {todayTasks.length > 0 && (
-          <div className="rounded-xl border border-border bg-card p-4 glass-card">
-            <h3 className="text-sm font-semibold text-foreground mb-2">Today Tasks</h3>
-            <div className="space-y-2">
+          <div className="rounded-lg border border-border bg-card p-2 sm:p-3 glass-card">
+            <h3 className="text-xs sm:text-sm font-semibold text-foreground mb-2">Today Tasks</h3>
+            <div className="space-y-1.5 sm:space-y-2">
               {todayTasks.map((task) => {
                 const isCompleted = !!completionMap[todayStr]?.[task.id];
                 return (
-                  <div key={task.id} className="flex items-center justify-between gap-2 p-2 rounded-md border border-border/50 bg-muted/10">
-                    <div>
-                      <p className="text-sm font-medium">{task.time} — {task.name}</p>
-                      <p className="text-xs text-muted-foreground">{task.frequency === 'daily' ? 'Daily' : 'Weekly'}</p>
+                  <div key={task.id} className="flex items-center justify-between gap-2 p-1.5 sm:p-2 rounded-md border border-border/50 bg-muted/10 text-xs sm:text-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{task.time} — {task.name}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">{task.frequency === 'daily' ? 'Daily' : 'Weekly'}</p>
                     </div>
-                    <span className={"text-xs font-semibold " + (isCompleted ? 'text-emerald-500' : 'text-muted-foreground')}>{isCompleted ? 'DONE' : 'TODO'}</span>
+                    <span className={"text-[10px] sm:text-xs font-semibold whitespace-nowrap ml-1 " + (isCompleted ? 'text-emerald-500' : 'text-muted-foreground')}>{isCompleted ? 'DONE' : 'TODO'}</span>
                   </div>
                 );
               })}
@@ -302,6 +302,8 @@ export function Dashboard() {
           <div className="hidden md:block space-y-6">
             {scratchpadOpen ? (
               <Scratchpad />
+            ) : brainToolsOpen ? (
+              <BrainTools />
             ) : (
               <>
                 <FutureSelfMessages />
@@ -374,11 +376,12 @@ export function Dashboard() {
                         Day Ends At
                       </Label>
                       <input
-                        id="day-ends-at"
+                        id='day-ends-at-profile'
                         type="time"
-                        value={useUIStore.getState().dayEndsAt}
-                        className="border border-border bg-background rounded-md px-2 py-1 text-sm h-9"
+                        value={dayEndsAt}
                         onChange={(e) => useUIStore.getState().setDayEndsAt(e.target.value)}
+                        className="border border-border bg-background rounded-md px-2 py-1 text-sm h-9"
+                        title="Day ends at time"
                       />
                     </div>
                   </div>
@@ -419,6 +422,11 @@ export function Dashboard() {
           taskName={proofTask.name}
         />
       )}
+
+      {/* Attribution Footer */}
+      <div className="fixed bottom-0 right-6 mb-2 text-xs text-muted-foreground opacity-60 hover:opacity-100 transition-opacity z-10 hidden md:block">
+        TaskTitan - Made by Braniac Technology
+      </div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { CATEGORY_COLORS } from '@/lib/habitUtils';
 
 export function CategorySidebar() {
-  const { selectedCategory, setSelectedCategory, setScratchpadOpen, scratchpadOpen, setMobileView } = useUIStore();
+  const { selectedCategory, setSelectedCategory, setScratchpadOpen, scratchpadOpen, brainToolsOpen, setBrainToolsOpen } = useUIStore();
   const { categories, addCategory, updateCategory, deleteCategory } = useCategories();
   const { tasks } = useTasks();
 
@@ -35,10 +35,10 @@ export function CategorySidebar() {
   const totalDailyTasks = tasks.filter(t => t.frequency === 'daily').length;
 
   return (
-    <aside className="w-52 shrink-0 border-r border-border bg-card p-4 overflow-y-auto">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categories</p>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setAdding(!adding)}>
+    <aside className="w-48 xl:w-52 shrink-0 border-r border-border bg-card p-3 overflow-y-auto">
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">Categories</p>
+        <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setAdding(!adding)}>
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
@@ -144,8 +144,13 @@ export function CategorySidebar() {
           <span className="flex-1 text-left">Scratchpad</span>
         </button>
         <button
-          onClick={() => setMobileView('tools')}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          onClick={() => { setBrainToolsOpen(!brainToolsOpen); setScratchpadOpen(false); }}
+          className={cn(
+            'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+            brainToolsOpen
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
         >
           <Gamepad2 className="h-4 w-4" />
           <span className="flex-1 text-left">Brain Tools</span>

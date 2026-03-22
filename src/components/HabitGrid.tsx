@@ -41,16 +41,16 @@ export function HabitGrid({ tasks, completionMap, onToggle, onEditTask, onDelete
   };
 
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[800px]">
+    <div className="overflow-x-auto -mx-2 sm:mx-0">
+      <div className="md:min-w-[800px]">
         {/* Day headers */}
         <div className="flex items-center gap-0 mb-1">
-          <div className="w-48 shrink-0" />
+          <div className="w-32 sm:w-48 shrink-0" />
           {days.map((day) => (
             <div
               key={day}
               className={cn(
-                'flex-1 min-w-[28px] text-center text-xs font-medium py-1.5',
+                'flex-1 min-w-[24px] sm:min-w-[28px] text-center text-[10px] sm:text-xs font-medium py-1.5',
                 isCurrentMonth && day === todayDate
                   ? 'text-primary font-bold'
                   : 'text-muted-foreground'
@@ -73,12 +73,12 @@ export function HabitGrid({ tasks, completionMap, onToggle, onEditTask, onDelete
               transition={{ delay: index * 0.03, duration: 0.2 }}
               className="flex items-center gap-0 group"
             >
-              <div className="w-48 shrink-0 flex flex-col gap-1 pr-3 py-1.5">
-                <div className="flex items-center gap-2">
+              <div className="w-32 sm:w-48 shrink-0 flex flex-col gap-1 pr-3 py-1.5">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                  <span className="text-sm font-medium text-foreground truncate">{task.name}</span>
+                  <span className="text-xs sm:text-sm font-medium text-foreground truncate">{task.name}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{useUIStore.getState().getTaskTime(task.id) || '04:00'}</span>
+                <span className="text-[10px] sm:text-xs text-muted-foreground">{useUIStore.getState().getTaskTime(task.id) || '04:00'}</span>
               </div>
 
               {days.map((day) => {

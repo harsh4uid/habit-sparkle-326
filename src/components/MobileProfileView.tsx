@@ -2,7 +2,6 @@ import { useGamification, xpForLevel } from '@/hooks/useGamification';
 import { useAuth } from '@/hooks/useAuth';
 import { useUIStore } from '@/stores/useHabitStore';
 import { AchievementBadges } from './AchievementBadges';
-import { Goals } from './Goals';
 import { HardModeToggle } from './HardModeToggle';
 import { LifeSimulation } from './LifeSimulation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,12 +43,12 @@ export function MobileProfileView({ darkMode, onToggleDarkMode }: Props) {
           type="time"
           value={dayEndsAt}
           onChange={(e) => setDayEndsAt(e.target.value)}
+          title="Day ends at time"
           className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
         />
       </div>
 
       <AchievementBadges />
-      <Goals />
 
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1 gap-2" onClick={onToggleDarkMode}>
