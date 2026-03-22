@@ -23,7 +23,6 @@ import { AutoScheduler } from './AutoScheduler';
 import { BrainTools } from './BrainTools';
 import { TimeBlockCalendar } from './TimeBlockCalendar';
 import { MobileProfileView } from './MobileProfileView';
-import { CarryoverPopup } from './CarryoverPopup';
 import { showMotivationalToast } from './MotivationalToast';
 import { FutureSelfMessages } from './FutureSelfMessages';
 import { LifeSimulation } from './LifeSimulation';
@@ -411,8 +410,6 @@ export function Dashboard() {
       <AutoScheduler open={autoSchedulerOpen} onClose={() => setAutoSchedulerOpen(false)} />
 
       <InactivityPrompt tasks={tasks} completionMap={completionMap} onStartFocus={handleStartFocus} />
-      
-      <CarryoverPopup tasks={tasks} completionMap={completionMap} />
 
       {proofTask && (
         <ProofOfWork
