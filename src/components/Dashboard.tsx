@@ -275,17 +275,17 @@ export function Dashboard() {
 
         {todayTasks.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4 glass-card">
-            <h3 className="text-sm font-semibold text-foreground mb-2">Today Timeline</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-2">Today Tasks</h3>
             <div className="space-y-2">
               {todayTasks.map((task) => {
-                const status = getTaskStatus(task, todayStr, completionMap, carriedToday);
+                const isCompleted = !!completionMap[todayStr]?.[task.id];
                 return (
                   <div key={task.id} className="flex items-center justify-between gap-2 p-2 rounded-md border border-border/50 bg-muted/10">
                     <div>
                       <p className="text-sm font-medium">{task.time} — {task.name}</p>
-                      <p className="text-xs text-muted-foreground">{task.frequency === 'daily' ? 'Daily' : 'Weekly'}{carriedToday.includes(task.id) ? ' • Carried' : ''}</p>
+                      <p className="text-xs text-muted-foreground">{task.frequency === 'daily' ? 'Daily' : 'Weekly'}</p>
                     </div>
-                    <span className={"text-xs font-semibold " + (status === 'completed' ? 'text-emerald-500' : status === 'missed' ? 'text-destructive' : status === 'carried' ? 'text-sky-500' : 'text-amber-500')}>{status.toUpperCase()}</span>
+                    <span className={"text-xs font-semibold " + (isCompleted ? 'text-emerald-500' : 'text-muted-foreground')}>{isCompleted ? 'DONE' : 'TODO'}</span>
                   </div>
                 );
               })}

@@ -51,14 +51,14 @@ export function getTaskStatus(
   date: string,
   completionMap: Record<string, Record<string, string>>,
   carriedTasks: string[] = []
-): 'pending' | 'completed' | 'missed' | 'carried' {
+): 'completed' | 'missed' | 'carried' {
   const completed = !!completionMap[date]?.[task.id];
   if (completed) return 'completed';
   if (carriedTasks.includes(task.id)) return 'carried';
 
   const currentDate = getCurrentLogicalDateString();
   if (date < currentDate) return 'missed';
-  return 'pending';
+  return 'carried'; // Current day tasks default to carried status
 }
 
 export function getTodayString(): string {

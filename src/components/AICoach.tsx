@@ -58,9 +58,9 @@ function analyzePatterns(tasks: Task[], completionMap: Record<string, Record<str
   const todayScheduled = tasks.filter(
     (t) => t.frequency === 'daily' && isScheduledForDay(t, today)
   );
-  const missed = todayScheduled.filter((t) => !completionMap[todayStr]?.[t.id]).length;
-  if (missed > 3) {
-    insights.push({ icon: AlertTriangle, message: `You have ${missed} pending tasks today. Break them into smaller steps.`, type: 'warning' });
+  const unfinished = todayScheduled.filter((t) => !completionMap[todayStr]?.[t.id]).length;
+  if (unfinished > 3) {
+    insights.push({ icon: AlertTriangle, message: `You have ${unfinished} tasks to complete today. Break them into smaller steps.`, type: 'warning' });
   }
 
   // Streak

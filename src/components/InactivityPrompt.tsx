@@ -35,13 +35,13 @@ export function InactivityPrompt({ tasks, completionMap, onStartFocus }: Props) 
       if (Date.now() - lastInteraction > INACTIVITY_MS) {
         const today = new Date();
         const todayStr = getTodayString();
-        const pending = tasks.filter(
+        const unfinished = tasks.filter(
           (t) =>
             t.frequency === 'daily' &&
             isScheduledForDay(t, today.getFullYear(), today.getMonth(), today.getDate()) &&
             !completionMap[todayStr]?.[t.id]
         );
-        if (pending.length > 0) {
+        if (unfinished.length > 0) {
           setMessage(getRandomInactivityMessage());
           setShow(true);
         }
@@ -53,13 +53,13 @@ export function InactivityPrompt({ tasks, completionMap, onStartFocus }: Props) 
   const handleDoItNow = () => {
     const today = new Date();
     const todayStr = getTodayString();
-    const pending = tasks.filter(
+    const unfinished = tasks.filter(
       (t) =>
         t.frequency === 'daily' &&
         isScheduledForDay(t, today.getFullYear(), today.getMonth(), today.getDate()) &&
         !completionMap[todayStr]?.[t.id]
     );
-    const random = pending[Math.floor(Math.random() * pending.length)];
+    const random = unfinished[Math.floor(Math.random() * unfinished.length)];
     setShow(false);
     onStartFocus(random?.id);
   };
