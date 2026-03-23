@@ -31,6 +31,7 @@ import { TimeTravelSimulation } from './TimeTravelSimulation';
 import { RandomChallenge } from './RandomChallenge';
 import { BurnoutDetector } from './BurnoutDetector';
 import { ProofOfWork } from './ProofOfWork';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useUIStore, type Task } from '@/stores/useHabitStore';
 import { useTasks } from '@/hooks/useTasks';
 import { useCompletions } from '@/hooks/useCompletions';
@@ -75,6 +76,7 @@ export function Dashboard() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [proofTask, setProofTask] = useState<Task | null>(null);
+  const [deleteConfirmTask, setDeleteConfirmTask] = useState<Task | null>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const { signOut } = useAuth();
@@ -117,6 +119,17 @@ export function Dashboard() {
   const handleCloseForm = () => {
     setFormOpen(false);
     setEditingTask(null);
+  };
+
+  const handleDeleteTask = (task: Task) => {
+    setDeleteConfirmTask(task);
+  };
+
+  const confirmDeleteTask = () => {
+    if (deleteConfirmTask) {
+      deleteTask.mutate(deleteConfirmTask.id);
+      setDeleteConfirmTask(null);
+    }
   };
 
   const handleSubmitTask = (data: { name: string; category_id: string; frequency: string; scheduled_days: number[]; difficulty: string; time?: string }) => {
@@ -198,7 +211,10 @@ export function Dashboard() {
                 completionMap={completionMap}
                 onToggle={handleToggle}
                 onEditTask={handleEditTask}
-                onDeleteTask={(id) => deleteTask.mutate(id)}
+                onDeleteTask={(id) => {
+                  const task = tasks.find(t => t.id === id);
+                  if (task) handleDeleteTask(task);
+                }}
               />
             </div>
             <TimeBlockCalendar tasks={tasks} />
@@ -353,7 +369,10 @@ export function Dashboard() {
                     completionMap={completionMap}
                     onToggle={handleToggle}
                     onEditTask={handleEditTask}
-                    onDeleteTask={(id) => deleteTask.mutate(id)}
+                    onDeleteTask={(id) => {
+                      const task = tasks.find(t => t.id === id);
+                      if (task) handleDeleteTask(task);
+                    }}
                   />
                 </div>
 
@@ -440,6 +459,23 @@ export function Dashboard() {
           taskName={proofTask.name}
         />
       )}
+
+      <AlertDialog open={!!deleteConfirmTask} onOpenChange={(open) => !open && setDeleteConfirmTask(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "<strong>{deleteConfirmTask?.name}</strong>"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTask} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Attribution Footer */}
       <div className="fixed bottom-0 right-6 mb-2 text-xs text-muted-foreground opacity-60 hover:opacity-100 transition-opacity z-10 hidden md:block">
