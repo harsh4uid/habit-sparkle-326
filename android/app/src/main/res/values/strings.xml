@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HabitSparkle</string>
+    <string name="title_activity_main">HabitSparkle</string>
+    <string name="package_name">com.harsh.habitsparkle</string>
+    <string name="custom_url_scheme">com.harsh.habitsparkle</string>
+</resources>
