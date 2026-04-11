@@ -1,10 +1,10 @@
-,kapply plugin: 'com.android.application'
+apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.harsh.habitsparkle"
+    namespace = "com.harsh.tasktitan"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.harsh.habitsparkle"
+        applicationId "com.harsh.tasktitan"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

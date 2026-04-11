@@ -1,4 +1,4 @@
-package com.harsh.habitsparkle;
+package com.harsh.tasktitan;
 
 import com.getcapacitor.BridgeActivity;
 
