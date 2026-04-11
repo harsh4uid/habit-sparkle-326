@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  base: "/habit-sparkle-326/",   // GitHub Pages base path
+  base: "./", // Use relative paths for Electron and GitHub Pages compatibility
 
   server: {
     host: "::",
