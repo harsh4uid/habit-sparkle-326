@@ -18,13 +18,25 @@
     "dist": "electron-builder"
   },
   "build": {
-    "appId": "com.harsh.app",
-    "productName": "HarshApp",
+    "appId": "com.harsh.habitsparkle",
+    "productName": "HabitSparkle",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "main.cjs"
+    ],
     "win": {
       "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
     }
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
     "@hookform/resolvers": "^3.10.0",
     "@lovable.dev/cloud-auth-js": "^0.0.3",
     "@radix-ui/react-accordion": "^1.2.11",
@@ -82,6 +94,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.3.0",
     "@eslint/js": "^9.32.0",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/typography": "^0.5.16",
@@ -109,8 +122,12 @@
     "vite": "^5.4.21",
     "vitest": "^3.2.4"
   },
-  "description": "",
-  "keywords": [],
-  "author": "",
+  "description": "Habit Sparkle - Desktop Application",
+  "keywords": [
+    "habit",
+    "tracker",
+    "desktop"
+  ],
+  "author": "Harsh",
   "license": "ISC"
 }
